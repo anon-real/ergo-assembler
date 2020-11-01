@@ -28,6 +28,7 @@ libraryDependencies ++= Seq(
   "io.circe" %% "circe-generic",
   "io.circe" %% "circe-parser"
 ).map(_ % circeVersion)
+libraryDependencies += "com.dripower" %% "play-circe" % "2712.0"
 
 assemblyJarName in assembly := s"${name.value}-${version.value}.jar"
 

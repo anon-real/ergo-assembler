@@ -7,21 +7,29 @@ import slick.jdbc.JdbcProfile
 
 import scala.concurrent.{ExecutionContext, Future}
 
-trait ReqSummaryComponent { self: HasDatabaseConfigProvider[JdbcProfile] =>
+trait ReqSummaryComponent {
+  self: HasDatabaseConfigProvider[JdbcProfile] =>
+
   import profile.api._
 
-  class ReqSummaryTable(tag: Tag) extends Table[ReqSummary](tag, "ASSEMBLE_REQ") {
+  class ReqSummaryTable(tag: Tag) extends Table[ReqSummary](tag, "SUMMARY") {
     def id = column[String]("ID")
+
     def returnTo = column[String]("RETURN_TO")
+
     def txId = column[String]("TX_ID")
+
     def timestamp = column[Long]("TIMESTAMP")
+
     def detail = column[String]("DETAIL")
-    def * = (id, returnTo, txId, timestamp, detail) <> (ReqSummary.tupled, ReqSummary.unapply)
+
+    def * = (id, returnTo, txId.?, timestamp, detail) <> (ReqSummary.tupled, ReqSummary.unapply)
   }
+
 }
 
 @Singleton()
-class ReqSummaryDAO @Inject() (protected val dbConfigProvider: DatabaseConfigProvider)(implicit executionContext: ExecutionContext)
+class ReqSummaryDAO @Inject()(protected val dbConfigProvider: DatabaseConfigProvider)(implicit executionContext: ExecutionContext)
   extends ReqSummaryComponent
     with HasDatabaseConfigProvider[JdbcProfile] {
 
@@ -31,6 +39,7 @@ class ReqSummaryDAO @Inject() (protected val dbConfigProvider: DatabaseConfigPro
 
   /**
    * inserts a request into db
+   *
    * @param req ReqSummary
    */
   def insert(req: ReqSummary): Future[Unit] = db.run(results += req).map(_ => ())
@@ -43,6 +52,7 @@ class ReqSummaryDAO @Inject() (protected val dbConfigProvider: DatabaseConfigPro
 
   /**
    * deletes by id
+   *
    * @param id request id
    */
   def deleteById(id: String): Future[Int] = db.run(results.filter(req => req.id === id).delete)

@@ -40,8 +40,15 @@ object Assembled {
   }
 }
 
-case class ReqSummary(id: String, returnTo: String, txId: String, timestamp: Long, details: String) {
+case class ReqSummary(id: String, returnTo: String, txId: Option[String], timestamp: Long, details: String) {
   def elapsedInSec: Long = (Calendar.getInstance().getTimeInMillis - timestamp) / 1000
 
   def isReturn: Boolean = details != "success"
 }
+
+object Summary {
+  def apply(id: String, returnTo: String): ReqSummary = ReqSummary(id, returnTo, Option.empty, Calendar.getInstance().getTimeInMillis, "pending")
+
+  def apply(req: AssemblyReq): ReqSummary = Summary(req.id, req.returnTo)
+}
+

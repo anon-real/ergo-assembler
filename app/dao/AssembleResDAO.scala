@@ -15,6 +15,8 @@ trait AssembleResComponent {
   class AssembleResTable(tag: Tag) extends Table[AssembleRes](tag, "ASSEMBLE_RES") {
     def id = column[String]("ID")
 
+    def scanId = column[Int]("SCAN_ID")
+
     def address = column[String]("ADDRESS")
 
     def returnTo = column[String]("RETURN_TO")
@@ -27,7 +29,7 @@ trait AssembleResComponent {
 
     def timestamp = column[Long]("TIMESTAMP")
 
-    def * = (id, address, returnTo, startWhen, txSpec, tx, timestamp) <> (AssembleRes.tupled, AssembleRes.unapply)
+    def * = (id, scanId, address, returnTo, startWhen, txSpec, tx, timestamp) <> (AssembleRes.tupled, AssembleRes.unapply)
   }
 
 }

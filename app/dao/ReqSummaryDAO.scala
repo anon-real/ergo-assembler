@@ -15,6 +15,8 @@ trait ReqSummaryComponent {
   class ReqSummaryTable(tag: Tag) extends Table[ReqSummary](tag, "SUMMARY") {
     def id = column[String]("ID")
 
+    def scanId = column[Int]("SCAN_ID")
+
     def returnTo = column[String]("RETURN_TO")
 
     def txId = column[String]("TX_ID")
@@ -23,7 +25,7 @@ trait ReqSummaryComponent {
 
     def detail = column[String]("DETAIL")
 
-    def * = (id, returnTo, txId.?, timestamp, detail) <> (ReqSummary.tupled, ReqSummary.unapply)
+    def * = (id, scanId, returnTo, txId.?, timestamp, detail) <> (ReqSummary.tupled, ReqSummary.unapply)
   }
 
 }

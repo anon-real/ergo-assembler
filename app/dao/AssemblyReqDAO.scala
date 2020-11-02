@@ -15,6 +15,8 @@ trait AssemblyReqComponent {
   class AssemblyReqTable(tag: Tag) extends Table[AssemblyReq](tag, "ASSEMBLY_REQ") {
     def id = column[String]("ID")
 
+    def scanId = column[Int]("SCAN_ID")
+
     def address = column[String]("ADDRESS")
 
     def returnTo = column[String]("RETURN_TO")
@@ -25,7 +27,7 @@ trait AssemblyReqComponent {
 
     def timestamp = column[Long]("TIMESTAMP")
 
-    def * = (id, address, returnTo, startWhen, txSpec, timestamp) <> (AssemblyReq.tupled, AssemblyReq.unapply)
+    def * = (id, scanId, address, returnTo, startWhen, txSpec, timestamp) <> (AssemblyReq.tupled, AssemblyReq.unapply)
   }
 
 }

@@ -25,18 +25,22 @@ class NodeService @Inject()() {
     parse(res.body).getOrElse(Json.Null).hcursor.downField("bytes").as[String].getOrElse("")
   }
 
-  /***
+  /** *
    * get raw format of an address
+   *
    * @param address ergo address
    * @return raw
    */
   def addressToRaw(address: String): String = {
     val res = Http(s"${Conf.nodeUrl}/utils/addressToRaw/$address").headers(defaultHeader).asString
-    parse(res.body).getOrElse(Json.Null).hcursor.downField("raw").as[String].getOrElse("")
+    val bodyJs = parse(res.body).getOrElse(Json.Null)
+    bodyJs.hcursor.downField("raw").as[String]
+      .getOrElse(throw new Exception(bodyJs.hcursor.downField("detail").as[String].getOrElse("")))
   }
 
   /**
    * registers a scan in node to follow unspent boxes
+   *
    * @param address ergo address
    * @return scan id
    */
@@ -57,6 +61,7 @@ class NodeService @Inject()() {
 
   /**
    * deregister an registered scan
+   *
    * @param scanId scanId
    * @return result of deregisteration
    */

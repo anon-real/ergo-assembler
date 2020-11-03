@@ -140,4 +140,45 @@ class NodeService @Inject()() {
       throw new Exception(body.noSpaces)
     }
   }
+
+  /**
+   * sends all assets of boxes to the address
+   *
+   * @param boxes   list of boxes
+   * @param address ergo address
+   */
+  def sendBoxesTo(boxes: Seq[Json], address: String): Json = {
+    val changeTokens: mutable.Map[String, Long] = mutable.Map.empty
+    boxes.foreach(box => box.hcursor.downField("box").as[Json].getOrElse(Json.Null).
+      hcursor.downField("assets").as[Seq[Json]].getOrElse(Seq()).foreach(token => {
+      val tokenId = token.hcursor.downField("tokenId").as[String].getOrElse("")
+      changeTokens(tokenId) = changeTokens.getOrElse(tokenId, 0L) + token.hcursor.downField("amount").as[Long].getOrElse(0L)
+    }))
+    val erg = boxes.map(box => box.hcursor.downField("box").as[Json].getOrElse(Json.Null)
+      .hcursor.downField("value").as[Long].getOrElse(0L)).sum
+
+    val ids = boxes.map(box => box.hcursor.downField("box").as[Json].getOrElse(Json.Null).
+      hcursor.downField("boxId").as[String].getOrElse(""))
+
+    val changeAsset = changeTokens.map(token =>
+      s"""{
+         |  "tokenId": "${token._1}",
+         |  "amount": ${token._2}
+         |}""".stripMargin).mkString(",")
+    val change =
+      s"""{
+         |  "address": "$address",
+         |  "value": $erg,
+         |  "assets": [${changeAsset.mkString(",")}]
+         |}""".stripMargin
+
+    val request =
+      s"""{
+         |  "requests": [$change],
+         |  "fee": ${Conf.returnTxFee},
+         |  "inputsRaw": [${ids.map(id => s""""${getRaw(id)}"""").mkString(",")}]
+         |}""".stripMargin
+
+    generateTx(request)
+  }
 }

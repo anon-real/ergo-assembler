@@ -21,6 +21,8 @@ object Conf {
   lazy val removeSummaryInterval: Long = readKey("removeSummaryInterval").toInt
   lazy val keepSummaryFor: Long = readKey("keepSummaryFor").toInt
 
+  lazy val returnTxFee: Long = readKey("returnTxFee").toInt
+
   def readKey(key: String, default: String = null): String = {
     try {
       if(config.has(key)) config.getOptional[String](key).getOrElse(default)

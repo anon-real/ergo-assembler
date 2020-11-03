@@ -49,6 +49,12 @@ class AssemblyReqDAO @Inject()(protected val dbConfigProvider: DatabaseConfigPro
   def insert(req: AssemblyReq): Future[Unit] = db.run(requests += req).map(_ => ())
 
   /**
+   * all requests
+   * @return list of AssemblyReq
+   */
+  def all: Future[Seq[AssemblyReq]] = db.run(requests.result)
+
+  /**
    * @param id request id
    * @return request associated with the id
    */

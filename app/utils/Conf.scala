@@ -18,6 +18,7 @@ object Conf {
   lazy val followTxForConf: Long = readKey("followTxForConf").toInt
   lazy val followTxInterval: Long = readKey("followTxInterval").toInt
 
+  lazy val removeSummaryInterval: Long = readKey("removeSummaryInterval").toInt
   lazy val keepSummaryFor: Long = readKey("keepSummaryFor").toInt
 
   def readKey(key: String, default: String = null): String = {

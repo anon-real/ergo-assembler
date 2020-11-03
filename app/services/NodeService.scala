@@ -15,7 +15,7 @@ class NodeService @Inject()() {
   private val defaultHeader: Seq[(String, String)] = Seq[(String, String)](("Content-Type", "application/json"), ("api_key", Conf.nodeApi))
 
   /**
-   * gets box as raw
+   * gets box as raw, whether box is confirmed or unconfirmed
    *
    * @param boxId box id
    * @return string representing the raw box
@@ -83,5 +83,61 @@ class NodeService @Inject()() {
   def broadcastTx(tx: String): Boolean = {
     val res = Http(s"${Conf.nodeUrl}/transactions").postData(tx).headers(defaultHeader).asString
     res.isSuccess
+  }
+
+  /**
+   * gets list of unspent boxes for a particular scanId, confirmed + unconfirmed
+   *
+   * @param scanId scan id
+   * @return list of boxes as json
+   */
+  def unspentBoxesFor(scanId: Int): List[Json] = {
+    val res = Http(s"${Conf.nodeUrl}/scan/unspentBoxes/$scanId").headers(defaultHeader).asString
+    val bodyJs = parse(res.body).getOrElse(Json.Null)
+    bodyJs.as[List[Json]]
+      .getOrElse(throw new Exception(bodyJs.hcursor.downField("detail").as[String].getOrElse("")))
+  }
+
+  /**
+   * generates arbitrary tx
+   *
+   * @param request tx request
+   * @return tx json or failure json in case of error
+   */
+  def generateTx(request: String): Json = {
+    val res = Http(s"${Conf.nodeUrl}/wallet/transaction/generateUnsigned").postData(request).headers(defaultHeader).asString
+    parse(res.body).getOrElse(Json.Null)
+  }
+
+  /**
+   * checks whether a specific box is spent or not
+   *
+   * @param boxId box id
+   * @return boolean in case of successfully contacting node, exception otherwise
+   */
+  def isSpent(boxId: String): Boolean = {
+    val res = Http(s"${Conf.nodeUrl}/utxo/byId/$boxId").headers(defaultHeader).asString
+    if (res.isSuccess) false
+    else if (res.code == 404) true
+    else {
+      val body = parse(res.body).getOrElse(Json.Null)
+      throw new Exception(body.noSpaces)
+    }
+  }
+
+  /**
+   * checks whether a specific tx is valid or not
+   *
+   * @param tx transaction body
+   * @return boolean in case of successfully contacting node, exception otherwise
+   */
+  def isTxValid(tx: String): Boolean = {
+    val res = Http(s"${Conf.nodeUrl}/transactions/check").postData(tx).headers(defaultHeader).asString
+    if (res.isSuccess) true
+    else if (res.code == 400) false
+    else {
+      val body = parse(res.body).getOrElse(Json.Null)
+      throw new Exception(body.noSpaces)
+    }
   }
 }

@@ -53,6 +53,13 @@ class ReqSummaryDAO @Inject()(protected val dbConfigProvider: DatabaseConfigProv
   def byId(id: String): Future[ReqSummary] = db.run(results.filter(req => req.id === id).result.head)
 
   /**
+   * deletes all entities created before the timestamp
+   * @param timestamp to remove before this time
+   * @return # of deleted
+   */
+  def beforeTime(timestamp: Long): Future[Seq[ReqSummary]] = db.run(results.filter(req => req.timestamp <= timestamp).result)
+
+  /**
    * deletes by id
    *
    * @param id request id

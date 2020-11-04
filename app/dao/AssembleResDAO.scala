@@ -57,6 +57,12 @@ class AssembleResDAO @Inject()(protected val dbConfigProvider: DatabaseConfigPro
   def byId(id: String): Future[AssembleRes] = db.run(results.filter(req => req.id === id).result.head)
 
   /**
+   * all requests
+   * @return list of AssembleRes
+   */
+  def all: Future[Seq[AssembleRes]] = db.run(results.result)
+
+  /**
    * deletes by id
    *
    * @param id request id

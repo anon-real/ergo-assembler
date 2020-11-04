@@ -12,8 +12,16 @@ resolvers += "Akka Snapshot Repository" at "https://repo.akka.io/snapshots/"
 
 scalaVersion := "2.12.2"
 
+val sigmaStateVersion = "3.2.1"
+lazy val sigmaState = ("org.scorexfoundation" %% "sigma-state" % sigmaStateVersion).force()
+  .exclude("ch.qos.logback", "logback-classic")
+  .exclude("org.scorexfoundation", "scrypto")
+  .exclude("org.typelevel", "machinist")
+  .exclude("org.typelevel", "cats-kernel")
+
 libraryDependencies ++= Seq(ehcache, ws, specs2 % Test, guice)
 libraryDependencies ++= Seq(
+  sigmaState,
   "org.scalaj" %% "scalaj-http" % "2.4.2",
   "com.h2database" % "h2" % "1.4.200",
   "com.typesafe.play" %% "play-slick" % "4.0.0",

@@ -5,7 +5,7 @@ import java.util.Calendar
 import dao.{AssembleResDAO, AssemblyReqDAO, ReqSummaryDAO}
 import io.circe.Json
 import javax.inject.Inject
-import models.{Assembled, AssemblyReq}
+import models.{Assembled, AssemblyReq, Stats}
 import play.api.Logger
 import utils.Conf
 import io.circe.jawn._
@@ -14,18 +14,18 @@ import scala.collection.mutable
 import scala.concurrent.ExecutionContext
 
 class RequestHandler @Inject()(nodeService: NodeService, assemblyReqDAO: AssemblyReqDAO, ec: ExecutionContext,
-                               assembleResDAO: AssembleResDAO) {
+                               assembleResDAO: AssembleResDAO, reqSummaryDAO: ReqSummaryDAO) {
   private val logger: Logger = Logger(this.getClass)
   implicit val executionContext: ExecutionContext = ec
 
-  def handleSummaries(): Unit = {
+  def handleReqs(): Unit = {
     logger.info("Handling requests...")
     val lastValidTime = Calendar.getInstance().getTimeInMillis - Conf.followRequestFor * 1000
     assemblyReqDAO.all.map(reqs => {
       reqs.foreach(req => {
         try {
           if (req.timestamp <= lastValidTime) {
-            handleRemoval(req)
+            handleRemoval(req, Stats.timeout)
 
           } else {
             handleReq(req)
@@ -41,17 +41,25 @@ class RequestHandler @Inject()(nodeService: NodeService, assemblyReqDAO: Assembl
     }
   }
 
-  def handleRemoval(req: AssemblyReq): Unit = {
-    logger.info(s"will remove request: ${req.id} with scanId: ${req.scanId} timeout!")
+  def handleRemoval(req: AssemblyReq, stat: String): Unit = {
+    logger.info(s"will remove request: ${req.id} with scanId: ${req.scanId}")
     val boxes = nodeService.unspentBoxesFor(req.scanId)
     if (boxes.nonEmpty) {
       val tx = nodeService.sendBoxesTo(boxes, req.returnTo)
       val ok = tx.hcursor.keys.getOrElse(Seq()).exists(key => key == "id")
       if (ok) {
-        assembleResDAO.insert(Assembled(req, tx.noSpaces, "return"))
+        assembleResDAO.insert(Assembled(req, tx.noSpaces)) recover {
+          case e: Exception => e.printStackTrace()
+        }
+        reqSummaryDAO.partialUpdate(req.id, tx.noSpaces, Stats.returnSuccess) recover {
+          case e: Exception => e.printStackTrace()
+        }
 
       } else {
         logger.warn(s"could not return assets of ${req.id} - ${req.scanId}, error: ${tx.noSpaces}")
+        reqSummaryDAO.partialUpdate(req.id, null, Stats.returnFailed) recover {
+          case e: Exception => e.printStackTrace()
+        }
       }
     }
 
@@ -84,7 +92,7 @@ class RequestHandler @Inject()(nodeService: NodeService, assemblyReqDAO: Assembl
 
       if (more) {
         logger.info(s"more deposit that requested ${req.id} - ${req.scanId}, removing...")
-        handleRemoval(req)
+        handleRemoval(req, Stats.returnFailed)
       }
     }
   }
@@ -105,19 +113,27 @@ class RequestHandler @Inject()(nodeService: NodeService, assemblyReqDAO: Assembl
     val body =
       s"""{
          |  "requests": [${txReqs.map(_.noSpaces).mkString(",")}],
-         |  "inputsRaw": [${inputRaws.mkString(",")}],
-         |  "dataInputsRaw": [${dataInputRaws.mkString(",")}],
+         |  "inputsRaw": [${inputRaws.map(id => s""""$id"""").mkString(",")}],
+         |  "dataInputsRaw": [${dataInputRaws.map(id => s""""$id"""").mkString(",")}],
          |  "fee": $fee
          |}""".stripMargin
     val tx = nodeService.generateTx(body)
     val ok = tx.hcursor.keys.getOrElse(Seq()).exists(key => key == "id")
     if (ok) {
-      assembleResDAO.insert(Assembled(req, tx.noSpaces, "success"))
-      assemblyReqDAO.deleteById(req.id)
+      logger.info(s"generated tx for ${req.id} - ${req.scanId} successfully: ${tx.hcursor.downField("id").as[String].getOrElse("")}")
+      assemblyReqDAO.deleteById(req.id) map (_ => {
+        assembleResDAO.insert(Assembled(req, tx.noSpaces)) recover {
+          case e: Exception => e.printStackTrace()
+        }
+        reqSummaryDAO.partialUpdate(req.id, tx.noSpaces, Stats.success) recover {
+          case e: Exception => e.printStackTrace()
+        }
+        nodeService.broadcastTx(tx.noSpaces)
+      })
 
     } else {
       logger.warn(s"could not generate tx, returning.... ${req.id} - ${req.scanId}, error: ${tx.noSpaces}")
-      handleRemoval(req)
+      handleRemoval(req, Stats.returnFailed)
     }
   }
 }

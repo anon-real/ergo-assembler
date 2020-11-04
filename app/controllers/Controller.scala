@@ -32,7 +32,8 @@ class Controller @Inject()(cc: ControllerComponents, actorSystem: ActorSystem,
   def follow: Action[Json] = Action(circe.json).async { implicit request =>
     try {
       val req = Assembly(request.body)
-      req.scanId = nodeService.registerScan(req.address)
+//      req.scanId = nodeService.registerScan(req.address)
+      req.scanId = 16
       val summary = Summary(req)
       val cur = assemblyReqDAO.insert(req) map (_ => {
         reqSummaryDAO.insert(summary) map (_ => {
@@ -62,11 +63,9 @@ class Controller @Inject()(cc: ControllerComponents, actorSystem: ActorSystem,
   def result(id: String): Action[AnyContent] = Action.async { implicit request =>
     try {
       reqSummaryDAO.byId(id) map (res => {
-        val txId = if (res.txId.isEmpty) null
-        else s""""${res.txId.get}""""
         Ok(
           s"""{
-             |  "txId": $txId,
+             |  "txId": ${res.tx.orNull},
              |  "details": "${res.details}"
              |}""".stripMargin).as("application/json")
       }) recover {

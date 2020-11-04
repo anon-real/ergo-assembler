@@ -13,7 +13,7 @@ trait AssembleResComponent {
   import profile.api._
 
   class AssembleResTable(tag: Tag) extends Table[AssembleRes](tag, "ASSEMBLE_RES") {
-    def id = column[String]("ID")
+    def id = column[String]("ID", O.PrimaryKey)
 
     def scanId = column[Int]("SCAN_ID")
 

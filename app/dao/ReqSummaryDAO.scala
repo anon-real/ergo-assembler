@@ -13,19 +13,19 @@ trait ReqSummaryComponent {
   import profile.api._
 
   class ReqSummaryTable(tag: Tag) extends Table[ReqSummary](tag, "SUMMARY") {
-    def id = column[String]("ID")
+    def id = column[String]("ID", O.PrimaryKey)
 
     def scanId = column[Int]("SCAN_ID")
 
     def returnTo = column[String]("RETURN_TO")
 
-    def txId = column[String]("TX_ID")
+    def tx = column[String]("TX")
 
     def timestamp = column[Long]("TIMESTAMP")
 
     def detail = column[String]("DETAIL")
 
-    def * = (id, scanId, returnTo, txId.?, timestamp, detail) <> (ReqSummary.tupled, ReqSummary.unapply)
+    def * = (id, scanId, returnTo, tx.?, timestamp, detail) <> (ReqSummary.tupled, ReqSummary.unapply)
   }
 
 }
@@ -54,10 +54,26 @@ class ReqSummaryDAO @Inject()(protected val dbConfigProvider: DatabaseConfigProv
 
   /**
    * deletes all entities created before the timestamp
+   *
    * @param timestamp to remove before this time
    * @return # of deleted
    */
   def beforeTime(timestamp: Long): Future[Seq[ReqSummary]] = db.run(results.filter(req => req.timestamp <= timestamp).result)
+
+  /**
+   * updates tx and detail field of the summary
+   *
+   * @param id     id
+   * @param tx     transaction
+   * @param detail detail
+   * @return number of updated rows
+   */
+  def partialUpdate(id: String, tx: String, detail: String): Future[Int] = {
+    val query = for {
+      m <- results if m.id === id
+    } yield (m.tx, m.detail)
+    db.run(query.update(tx, detail))
+  }
 
   /**
    * deletes by id
@@ -65,4 +81,6 @@ class ReqSummaryDAO @Inject()(protected val dbConfigProvider: DatabaseConfigProv
    * @param id request id
    */
   def deleteById(id: String): Future[Int] = db.run(results.filter(req => req.id === id).delete)
+
+  //  def upsert(req: ReqSummary): Future[Unit] = db.run(results.insertOrUpdate(req).map(_ => ()))
 }

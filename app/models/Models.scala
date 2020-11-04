@@ -9,7 +9,7 @@ import io.circe.parser._
 case class AssemblyReq(id: String, var scanId: Int, address: String, returnTo: String, startWhen: String, txSpec: String, timestamp: Long) {
   def elapsedInSec: Long = (Calendar.getInstance().getTimeInMillis - timestamp) / 1000
 
-  def toRes(tx: String, details: String): AssembleRes = Assembled(this, tx, details)
+  def toRes(tx: String): AssembleRes = Assembled(this, tx)
 }
 
 object Assembly {
@@ -35,20 +35,33 @@ object Assembled {
     AssembleRes(id, scanId, address, returnTo, startWhen, txSpec, tx, Calendar.getInstance().getTimeInMillis)
   }
 
-  def apply(req: AssemblyReq, tx: String, details: String): AssembleRes = {
+  def apply(req: AssemblyReq, tx: String): AssembleRes = {
     AssembleRes(req.id, req.scanId, req.address, req.returnTo, req.startWhen, req.txSpec, tx, Calendar.getInstance().getTimeInMillis)
   }
 }
 
-case class ReqSummary(id: String, scanId: Int, returnTo: String, txId: Option[String], timestamp: Long, details: String) {
+object Stats {
+  val pending = "pending"
+  val returnSuccess = "returning"
+  val returnFailed = "return failed"
+  val timeout = "timeout"
+  val success = "success"
+}
+
+case class ReqSummary(id: String, scanId: Int, returnTo: String, tx: Option[String], timestamp: Long, details: String) {
   def elapsedInSec: Long = (Calendar.getInstance().getTimeInMillis - timestamp) / 1000
 
   def isReturn: Boolean = details != "success"
 }
 
 object Summary {
-  def apply(id: String, scanId: Int, returnTo: String): ReqSummary = ReqSummary(id, scanId, returnTo, Option.empty, Calendar.getInstance().getTimeInMillis, "pending")
+  def apply(id: String, scanId: Int, returnTo: String, tx: Option[String], timestamp: Long, details: String): ReqSummary =
+    ReqSummary(id, scanId, returnTo, tx, timestamp, details)
 
-  def apply(req: AssemblyReq): ReqSummary = Summary(req.id, req.scanId, req.returnTo)
+  def apply(req: AssemblyReq, tx: Option[String], timestamp: Long, details: String): ReqSummary =
+    Summary(req.id, req.scanId, req.returnTo, tx, timestamp, details)
+
+  def apply(req: AssemblyReq): ReqSummary = Summary(req, Option.empty, Calendar.getInstance().getTimeInMillis, Stats.pending)
+
 }
 

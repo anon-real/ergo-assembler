@@ -6,6 +6,9 @@ import play.api.Logger
 import scalaj.http.Http
 import io.circe.parser._
 import utils.Conf
+import scorex.util.encode.Base16
+import sigmastate.Values.ByteArrayConstant
+import sigmastate.serialization.ValueSerializer
 
 import scala.collection.mutable
 
@@ -45,12 +48,15 @@ class NodeService @Inject()() {
    * @return scan id
    */
   def registerScan(address: String): Int = {
+    val bs = Base16.decode(addressToRaw(address)).get
+    val bac = ByteArrayConstant(bs)
+    val encoded = Base16.encode(ValueSerializer.serialize(bac))
     val body =
       s"""{
          |  "scanName": "assembler",
          |  "trackingRule": {
          |    "predicate": "equals",
-         |    "value": "${addressToRaw(address)}"
+         |    "value": "$encoded"
          |  }
          |}""".stripMargin
     val res = Http(s"${Conf.nodeUrl}/scan/register").postData(body).headers(defaultHeader).asString
@@ -105,7 +111,7 @@ class NodeService @Inject()() {
    * @return tx json or failure json in case of error
    */
   def generateTx(request: String): Json = {
-    val res = Http(s"${Conf.nodeUrl}/wallet/transaction/generateUnsigned").postData(request).headers(defaultHeader).asString
+    val res = Http(s"${Conf.nodeUrl}/wallet/transaction/generate").postData(request).headers(defaultHeader).asString
     parse(res.body).getOrElse(Json.Null)
   }
 
@@ -155,7 +161,7 @@ class NodeService @Inject()() {
       changeTokens(tokenId) = changeTokens.getOrElse(tokenId, 0L) + token.hcursor.downField("amount").as[Long].getOrElse(0L)
     }))
     val erg = boxes.map(box => box.hcursor.downField("box").as[Json].getOrElse(Json.Null)
-      .hcursor.downField("value").as[Long].getOrElse(0L)).sum
+      .hcursor.downField("value").as[Long].getOrElse(0L)).sum - Conf.returnTxFee
 
     val ids = boxes.map(box => box.hcursor.downField("box").as[Json].getOrElse(Json.Null).
       hcursor.downField("boxId").as[String].getOrElse(""))

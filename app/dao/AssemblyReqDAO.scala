@@ -13,7 +13,7 @@ trait AssemblyReqComponent {
   import profile.api._
 
   class AssemblyReqTable(tag: Tag) extends Table[AssemblyReq](tag, "ASSEMBLY_REQ") {
-    def id = column[String]("ID")
+    def id = column[String]("ID", O.PrimaryKey)
 
     def scanId = column[Int]("SCAN_ID")
 

@@ -96,7 +96,7 @@ class RequestHandler @Inject()(nodeService: NodeService, assemblyReqDAO: Assembl
       })
 
       if (more) {
-        logger.info(s"more deposit that requested ${req.id} - ${req.scanId}, removing...")
+        logger.info(s"more deposit than requested ${req.id} - ${req.scanId}, removing...")
         handleRemoval(req, Stats.returnFailed)
       }
     }

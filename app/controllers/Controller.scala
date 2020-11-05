@@ -68,8 +68,9 @@ class Controller @Inject()(cc: ControllerComponents, actorSystem: ActorSystem,
       reqSummaryDAO.byId(id) map (res => {
         Ok(
           s"""{
+             |  "id": "$id",
              |  "tx": ${res.tx.orNull},
-             |  "details": "${res.details}"
+             |  "detail": "${res.details}"
              |}""".stripMargin).as("application/json")
       }) recover {
         case e: Exception => errorResponse(e)

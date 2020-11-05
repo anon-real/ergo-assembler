@@ -54,12 +54,17 @@ class RequestHandler @Inject()(nodeService: NodeService, assemblyReqDAO: Assembl
         reqSummaryDAO.partialUpdate(req.id, tx.noSpaces, Stats.returnSuccess) recover {
           case e: Exception => e.printStackTrace()
         }
+        nodeService.broadcastTx(tx.noSpaces)
 
       } else {
         logger.warn(s"could not return assets of ${req.id} - ${req.scanId}, error: ${tx.noSpaces}")
         reqSummaryDAO.partialUpdate(req.id, null, Stats.returnFailed) recover {
           case e: Exception => e.printStackTrace()
         }
+      }
+    } else {
+      reqSummaryDAO.partialUpdate(req.id, null, Stats.timeout) recover {
+        case e: Exception => e.printStackTrace()
       }
     }
 

@@ -65,6 +65,7 @@ class ResultHandler @Inject()(nodeService: NodeService, assemblyReqDAO: Assembly
           case e: Exception => e.printStackTrace()
         }
       }
+      nodeService.broadcastTx(res.tx)
     }
   }
 }

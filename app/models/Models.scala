@@ -17,7 +17,10 @@ object Assembly {
     val address = reqJs.hcursor.downField("address").as[String].getOrElse(throw new Exception("address field is required"))
     val returnTo = reqJs.hcursor.downField("returnTo").as[String].getOrElse(throw new Exception("returnTo field is required"))
     val startWhen = reqJs.hcursor.downField("startWhen").as[Json].getOrElse(throw new Exception("startWhen field is required")).noSpaces
-    val txSpec = reqJs.hcursor.downField("txSpec").as[Json].getOrElse(throw new Exception("txSpec field is required")).noSpaces
+    val txSpecJs = reqJs.hcursor.downField("txSpec").as[Json].getOrElse(throw new Exception("txSpec field is required"))
+    txSpecJs.hcursor.downField("inputs").as[Json].getOrElse(throw new Exception("txSpec is invalid, no inputs field!"))
+    txSpecJs.hcursor.downField("requests").as[Json].getOrElse(throw new Exception("txSpec is invalid, no requests field!"))
+    val txSpec = txSpecJs.noSpaces
     val timestamp = Calendar.getInstance().getTimeInMillis
     val id = UUID.randomUUID().toString
     AssemblyReq(id, 0, address, returnTo, startWhen, txSpec, timestamp)

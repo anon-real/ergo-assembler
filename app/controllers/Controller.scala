@@ -8,7 +8,10 @@ import models.{Assembly, Summary}
 import play.api.Logger
 import play.api.libs.circe.Circe
 import play.api.mvc._
+import scorex.util.encode.Base16
 import services.NodeService
+import sigmastate.Values.ByteArrayConstant
+import sigmastate.serialization.ValueSerializer
 
 import scala.concurrent.{ExecutionContext, Future}
 
@@ -22,18 +25,18 @@ class Controller @Inject()(cc: ControllerComponents, actorSystem: ActorSystem,
   private val logger: Logger = Logger(this.getClass)
 
   def errorResponse(e: Exception): Result = {
+    val msg = e.getMessage.replaceAll("\n", "\\\\n").replaceAll("\"", "\\\\\"")
     BadRequest(
       s"""{
          |  "success": false,
-         |  "detail": "${e.getMessage}"
+         |  "detail": "$msg"
          |}""".stripMargin).as("application/json")
   }
 
   def follow: Action[Json] = Action(circe.json).async { implicit request =>
     try {
       val req = Assembly(request.body)
-//      req.scanId = nodeService.registerScan(req.address)
-      req.scanId = 16
+      req.scanId = nodeService.registerScan(req.address)
       val summary = Summary(req)
       val cur = assemblyReqDAO.insert(req) map (_ => {
         reqSummaryDAO.insert(summary) map (_ => {
@@ -65,7 +68,7 @@ class Controller @Inject()(cc: ControllerComponents, actorSystem: ActorSystem,
       reqSummaryDAO.byId(id) map (res => {
         Ok(
           s"""{
-             |  "txId": ${res.tx.orNull},
+             |  "tx": ${res.tx.orNull},
              |  "details": "${res.details}"
              |}""".stripMargin).as("application/json")
       }) recover {
@@ -76,6 +79,18 @@ class Controller @Inject()(cc: ControllerComponents, actorSystem: ActorSystem,
         Future {
           errorResponse(e)
         }
+    }
+  }
+
+  def compile: Action[Json] = Action(circe.json) { implicit request =>
+    try {
+      val script = request.body.as[String].getOrElse("")
+      Ok(
+        s"""{
+           |  "address": "${nodeService.compile(script)}"
+           |}""".stripMargin).as("application/json")
+    } catch {
+      case e: Exception => errorResponse(e)
     }
   }
 }

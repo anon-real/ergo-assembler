@@ -25,7 +25,7 @@ class NodeService @Inject()() {
    */
   def getRaw(boxId: String): String = {
     val res = Http(s"${Conf.nodeUrl}/utxo/byIdBinary/$boxId").headers(defaultHeader).asString
-    parse(res.body).getOrElse(Json.Null).hcursor.downField("bytes").as[String].getOrElse("")
+    parse(res.body).getOrElse(Json.Null).hcursor.downField("bytes").as[String].getOrElse(throw new Exception("not found"))
   }
 
   /** *
@@ -186,5 +186,20 @@ class NodeService @Inject()() {
          |}""".stripMargin
 
     generateTx(request)
+  }
+
+  /**
+   * compiles a script
+   *
+   * @param script script body
+   * @return p2s address
+   */
+  def compile(script: String): String = {
+    val body = "{\"source\":\"" + script.replaceAll("\n", "\\\\n")
+          .replaceAll("\"", "\\\\\"") + "\"}"
+    val res = Http(s"${Conf.nodeUrl}/script/p2sAddress").postData(body).headers(defaultHeader).asString
+    val det = parse(res.body).getOrElse(Json.Null)
+    if (res.isSuccess) det.hcursor.downField("address").as[String].getOrElse("")
+    else throw new Exception(det.hcursor.downField("detail").as[String].getOrElse(""))
   }
 }

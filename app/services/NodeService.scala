@@ -25,7 +25,7 @@ class NodeService @Inject()() {
    */
   def getRaw(boxId: String): String = {
     val res = Http(s"${Conf.nodeUrl}/utxo/byIdBinary/$boxId").headers(defaultHeader).asString
-    parse(res.body).getOrElse(Json.Null).hcursor.downField("bytes").as[String].getOrElse(throw new Exception("not found"))
+    parse(res.body).getOrElse(Json.Null).hcursor.downField("bytes").as[String].getOrElse("")
   }
 
   /** *

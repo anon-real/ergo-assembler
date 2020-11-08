@@ -24,8 +24,12 @@ class NodeService @Inject()() {
    * @return string representing the raw box
    */
   def getRaw(boxId: String): String = {
-    val res = Http(s"${Conf.nodeUrl}/utxo/byIdBinary/$boxId").headers(defaultHeader).asString
-    parse(res.body).getOrElse(Json.Null).hcursor.downField("bytes").as[String].getOrElse("")
+    val unconfirmed = Http(s"${Conf.nodeUrl}/utxo/withPool/byIdBinary/$boxId").headers(defaultHeader).asString
+    val unc = parse(unconfirmed.body).getOrElse(Json.Null).hcursor.downField("bytes").as[String].getOrElse("")
+    if (unc.isEmpty) {
+      val res = Http(s"${Conf.nodeUrl}/utxo/byIdBinary/$boxId").headers(defaultHeader).asString
+      parse(res.body).getOrElse(Json.Null).hcursor.downField("bytes").as[String].getOrElse("")
+    } else unc
   }
 
   /** *

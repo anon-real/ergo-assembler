@@ -40,6 +40,7 @@ class Controller @Inject()(cc: ControllerComponents, actorSystem: ActorSystem,
       val summary = Summary(req)
       val cur = assemblyReqDAO.insert(req) map (_ => {
         reqSummaryDAO.insert(summary) map (_ => {
+          logger.info(s"registered ${req.id} - ${req.scanId}")
           Ok(
             s"""{
                |  "id": "${req.id}"

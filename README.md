@@ -27,7 +27,7 @@ This contract behind this address must be such that allows the service to do two
 first, using assets to assemble the requsted transaction, second, return the assets to the user in case of any failures.
 A well-designed contract and hense `address` must be such that prevent the service from stealing the assets.
 For example in case of the Auction House and placing bids, the following is the contract for the `address` field of the registered request:
-    ```
+    ```scala
     {
       val userAddress = PK("$userAddress")
       val bidAmount = $bidAmountL

@@ -51,6 +51,21 @@ For example in case of the Auction House and placing bids, the following is the 
     auction box (`auctionId` part which is the current box id of the auction)
     hence different addresses for different auctions or users. This is essentially needed for the
     service to be able to distinguish between different assets!
+* `returnTo`: This field must contain user's address. Assets will be returned to this address in case of any failures.
+* `startWhen`: This field hints the assembler service about when to start assembling the transaction. As an example:
+    ```scala
+        { 
+           "erg":1000000000,
+           "d01bdce3959ff6b675f7ab40ec2479ca5ce1edf3ae6314631f09c0f9807752aa":71
+        }
+    ```
+  the above data will hint the assembler to wait for the user to send 1 ERG and 71 of d01bd... token.
+  Currently, the assembler expects this requirements to be exactly satisfied by the user.
+  So if the user sends more than she is supposed to, all her assets will be returned to her as doesn't satisfy the requirements.
+  On the other hand, if the current deposited assets are less than the requirements, the service waits for more deposits so the requirements become satisfied.
+  
+  As a future work, would be nice to have some more kind of requirements. For example >= and <= requirements instead of exact equality.
+  
 
 
 ### Request result

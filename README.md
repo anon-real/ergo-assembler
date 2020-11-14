@@ -64,7 +64,7 @@ For example in case of the Auction House and placing bids, the following is the 
   So if the user sends more than she is supposed to, all her assets will be returned to her.
   On the other hand, if the current deposited assets are less than the requirements, the service will wait for more deposits so the requirements become satisfied.
   
-  As a future work, would be nice to have some more kind of requirements. For example `>=` and `<=` requirements instead of exact equality.
+  As a future work, would be nice to have some more kind of requirements. For example `>=` and `<=` requirements in addition to exact equality.
   
 
 

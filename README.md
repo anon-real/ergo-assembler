@@ -53,7 +53,7 @@ For example in case of the Auction House and placing bids, the following is the 
     service to be able to distinguish between different assets!
 * `returnTo`: This field must contain the user's address. Assets will be returned to this address in case of any failures.
 * `startWhen`: This field hints the assembler service about when to start assembling the transaction. As an example:
-    ```scala
+    ```json
         { 
            "erg":1000000000,
            "d01bdce3959ff6b675f7ab40ec2479ca5ce1edf3ae6314631f09c0f9807752aa":71
@@ -66,6 +66,61 @@ For example in case of the Auction House and placing bids, the following is the 
   
   As a future work, would be nice to have some more kind of requirements. For example `>=` and `<=` requirements in addition to exact equality.
   
+* `txSpec`: This field is essentially the transaction generation request, very much like the node's `transaction/generate` endpoint
+with some changes.
+    - First of all instead of `inputsRaw` and `dataInputsRaw`, `inputs` and `dataInputs` must be provided which means
+    dApss don't need to have access to a node to get raw serialization of boxes and they can provide the box id instead.
+    - Second, this `txSpec` obviously should contain user's assets which will be sent to `address`. inputs field should contain
+    `$userIns` wherever user's inputs should be placed. As an example if user's input must be last input of the transaction
+    then the following would be what must be specified for `inputs` field of the `txSpec`:
+        ```json
+      "txSpec": {
+          // other fields
+            "inputs": [..., "$userIns"] // ... can be other inputs (box ids)
+      }
+        ```
+    The below is a complete example of `txSpec` field for placing a 0.2 ERG bid in the Ergo Auction House:
+    ```json
+     {
+       // other fields
+       "txSpec":{
+         "requests":[
+           {
+             "value":200000000,
+             "address":"B63bstXvgAmLqicW4SphqE6AkixAyU7xPpN8g5QwzKsCLvUmNSjZTkrWif7dDzHTBwtCFSvE9qsouL9LnkfJKKmhL4Mw4sA2gNKzgN4wuVcXqvPmPRq5yHky2LyADXmF6Py8vS8KGm7cyHB4U2voCMFqEbgPFoXLRYaa2m3rmCJiNmfdmbqYtMdzH9xRYEVZheDmuBJJnAEFqn6z4h5pitDKZeJJRMnWoJ8YJAooXw5bhxviqcB3HAWmLuJovSpcQ2btWK9h6QhkfyjxbRCmLkKhkbqnF49PkvaqFhqSar68uXVRf6s9FDC4WVND8KmVVh2DhyRrNjNx8u25hwas3q8S7MQfY2jmMJ7pMmgQ8NXZL9FjEeH7WUJbWnwLvm8rKf3yAACP6WD9s84R7Nvr2ijK21PhXkRFgGAPzjWfa4VHVXqcKYYJrA79eK5fVnM8QrLEEd3Rn9Km1LjjT7EEgZhTyym5QyFVzHrx6XipunbwBw2BAXj7HE9wCi",
+             "assets":[
+               {
+                 "tokenId":"d01bdce3959ff6b675f7ab40ec2479ca5ce1edf3ae6314631f09c0f9807752aa",
+                 "amount":2
+               }
+             ],
+             "registers":{
+               "R4":"0e240008cd03b04048a9708f0a2b109d75513a2483e3b9ede622efb3cc03bdddf93bccd93ac5",
+               "R5":"04fe952c",
+               "R6":"058084af5f",
+               "R7":"0e052e2e2e2e2e",
+               "R8":"0e240008cd02d84d2e1ca735ce23f224bd43cd43ed67053356713a8a6920965b3bde933648dc",
+               "R9":"0e1a3130303030303030302c3130303030303030302c333631383330"
+             }
+           },
+           {
+             "value":100000000,
+             "address":"9hoRnjysKfkwZSCgSFNzSXMohwYn8DqruuYxD6vT7Ubw55qnwiZ"
+           }
+         ],
+         "fee":2000000,
+         "inputs":[
+           "$userIns",
+           "156e63c67daae6724bfb6cd75b2692541342c1591d6f48ec5553ca58d3c5fb5a"
+         ],
+         "dataInputs":[
+           "ed228293da075fc6364725e0f672930147a8a4d953e349a2452219fee23cd181"
+         ]
+       }
+     }
+
+    ```
+      
 
 
 ### Request result

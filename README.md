@@ -73,14 +73,14 @@ with some changes.
     - Second, this `txSpec` obviously should contain user's assets which will be sent to `address`. inputs field should contain
     `$userIns` wherever user's inputs should be placed. As an example if user's input must be last input of the transaction
     then the following would be what must be specified for `inputs` field of the `txSpec`:
-        ```json
+        ```
       "txSpec": {
-          // other fields
+          # other fields
             "inputs": [..., "$userIns"] // ... can be other inputs (box ids)
       }
         ```
     The below is a complete example of `txSpec` field for placing a 0.2 ERG bid in the Ergo Auction House:
-    ```json
+    ```
      {
        // other fields
        "txSpec":{

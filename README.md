@@ -70,8 +70,8 @@ For example in case of the Auction House and placing bids, the following is the 
 with some changes.
     - First of all instead of `inputsRaw` and `dataInputsRaw`, `inputs` and `dataInputs` must be provided which means
     dApss don't need to have access to a node to get raw serialization of boxes and they can provide the box id instead.
-    - Second, this `txSpec` obviously should contain user's assets which will be sent to `address`. inputs field should contain
-    `$userIns` wherever user's inputs should be placed. As an example if user's input must be last input of the transaction
+    - Second, this `txSpec` obviously should contain user's assets which will be sent to `address`. `inputs` field should contain
+    `$userIns` wherever user's inputs should be placed. As an example, if user's input(s) must be the last input of the transaction,
     then the following would be what must be specified for `inputs` field of the `txSpec`:
         ```
       "txSpec": {
@@ -79,7 +79,7 @@ with some changes.
             "inputs": [..., "$userIns"] // ... can be other inputs (box ids)
       }
         ```
-    The below is a complete example of `txSpec` field for placing a 0.2 ERG bid in the Ergo Auction House:
+    The below is a complete example of `txSpec` field for placing a 0.2 ERG bid in the Ergo Auction House. Note that the user's inputs will be the first inputs of the transaction by specifying `$userIns` first; The second input is the current auction box.
     ```
      {
        // other fields

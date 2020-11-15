@@ -80,7 +80,7 @@ with some changes.
       }
         ```
     The below is a complete example of `txSpec` field for placing a 0.2 ERG bid in the Ergo Auction House:
-    ```json
+    ```
      {
        // other fields
        "txSpec":{
@@ -120,6 +120,8 @@ with some changes.
      }
 
     ```
+  Currently, `$userIns` is only supported in the `inputs` field; As a future work,
+  it should be supported in the `request` field too, for example for issuing tokens!
       
 
 

@@ -17,7 +17,7 @@ By using this service, it is possible to generate any arbitrary transaction on u
 Despite the fact that the service is an intermediate step which requires users to send assets to
 a p2s address, it is very fast since it does not require user's transaction(s) to be mined by taking advantage of chained transactions.
 
-So basically, it is very much like when dApps use user's node directly!
+So basically, it is very much like when dApps use user's node directly if she had one!
 
 ## How to use?
 ### Register a request

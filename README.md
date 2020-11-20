@@ -193,7 +193,7 @@ java -jar -Dconfig.file=application.conf -Dhttp.port=8080 ergo-assembler-0.1.jar
 ```
 
 ## Future works
-The following should be done in the future in order for the service to be more "general" and also easier to setup:
+The following should be done in the future in order for the service to be more "general" and also easier to run:
 - Dockerizing the service: will allow the service to be scalable.
 - More "starting" criteria types: currently the assembler supports only exact matching for user's assets
 in order to know when to start assembling the requested transaction, however some dApss may need _less_, _greater_, etc.

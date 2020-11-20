@@ -125,11 +125,72 @@ with some changes.
       
 
 
-### Request result
+### Result
+After registering a request you will get a result like the following:
+```json
+{
+    "id": "b486666b-84ad-4780-a277-cb9677f9ca6f"
+}
+```
+Then you can use the `id` to follow the request's result by calling `/result/:id`.
+The below is the result if the transaction is assembled successfully:
+```json
+
+{
+  "id": ":id",
+  "tx": {"id": "..."},
+  "detail": "success"
+}
+```
+Other important values for `detail` field are: _pending_, _returning_ and _timeout_.
+In casess other than _success_ and _returning_, the `tx` field will be null.
+
+## How does it work?
+The assember service uses the scan functionality of the node to follow registered addresses.
+It also makes use of chained transaction and identifies the user's assets very soon after she
+has transfered them.
+
+There are several phases for each registered request:
+- Assembling (_pending_ as `detail` field): in this phase the assembler service will follow the registered address
+periodically in short intervals (every 10 seconds by default) - it will remain in this phsse
+for some time (4 minutes by default) and if it couldn't identify the necessary assets by the end
+of this time, then the request will be marked as _timeout_. As soon as it identifies the necessary assets
+it will try to assemble the requested transaction and goes to the next phase with _success_ status! However if the 
+assembling process fails (for example some inputs are already spent) or the request is _timeout_
+and there are some deposited assets, then the service will return the assets to the user and the request
+will be marked as _returning_.
+
+- Mining (_success_ or _returning_ as `detail` field): if in the previous phase, the requested transaction or the returnung transaction was generated
+then in this phase the assembler service waits to make sure the transaction is mined and gets some
+confirmation number (configurable in the config file). If for any reason the tx gets rejected in this phase (the transaction is not valid anymore according to the current context)
+then the request will again go to the first phase.
+
+- Archiving: if the request is marked as `timeout` or in any other situations, it will still be archived
+for some time (1 hour by default) for it to be queryable - after this time has passed, all the request's related information wil be removed.
+
+The above phasing mechanism enables the service to be fast and also not become slower over time since it gets rid of requests - thus being kind of state less.
 
 ## Configuration
-TODO
+Every configuration parameter is explained below:
+- node.url: node url which the assembler service uses to follow addresses.
+- node.api_key: api key of the node.
+- followRequestFor: follows each request for this amount of time for the first phase in seconds.
+- followRequestInterval: the interval in which the service checks each request in seconds.
+- followTxFor: the amount of time the assembler keeps the request in the _mining_ phase.
+- followTxForConf: if the transaction gets at least this number of confirmations, then will be considered as mined and the request will be archived.
+- followTxInterval: the interval in which the service will check the mining status of transactions.
+- keepSummaryFor: will keep the request as archived for this amount of time in seconds.
+- returnTxFee: fee that the service uses for returning transactions.
 
 ## Running the code
-TODO
+Download the jar file or create one yourself using:
+```bash
+sbt assembly
+```
+Run the jar file using:
+```bash
+java -jar -Dconfig.file=application.conf -Dhttp.port=8080 ergo-assembler-0.1.jar
+```
 
+## Docker quick start
+TODO

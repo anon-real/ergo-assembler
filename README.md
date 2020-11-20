@@ -172,15 +172,15 @@ The above phasing mechanism enables the service to be fast and also not become s
 
 ## Configuration
 Every configuration parameter is explained below:
-- node.url: node url which the assembler service uses to follow addresses.
-- node.api_key: api key of the node.
-- followRequestFor: follows each request for this amount of time for the first phase in seconds.
-- followRequestInterval: the interval in which the service checks each request in seconds.
-- followTxFor: the amount of time the assembler keeps the request in the _mining_ phase.
-- followTxForConf: if the transaction gets at least this number of confirmations, then will be considered as mined and the request will be archived.
-- followTxInterval: the interval in which the service will check the mining status of transactions.
-- keepSummaryFor: will keep the request as archived for this amount of time in seconds.
-- returnTxFee: fee that the service uses for returning transactions.
+- _node.url_: node url which the assembler service uses to follow addresses.
+- _node.api_key_: api key of the node.
+- _followRequestFor_: follows each request for this amount of time for the first phase in seconds.
+- _followRequestInterval_: the interval in which the service checks each request in seconds.
+- _followTxFor_: the amount of time the assembler keeps the request in the _mining_ phase.
+- _followTxForConf_: if the transaction gets at least this number of confirmations, then will be considered as mined and the request will be archived.
+- _followTxInterval_: the interval in which the service will check the mining status of transactions.
+- _keepSummaryFor_: will keep the request as archived for this amount of time in seconds.
+- _returnTxFee_: fee that the service uses for returning transactions.
 
 ## Running the code
 Download the jar file or create one yourself using:

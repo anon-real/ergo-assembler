@@ -1,12 +1,12 @@
-# Transaction Assembler Service for [ERGO](https://ergoplatform.org/en/)
+# Transaction Assembler Service for [Ergo](https://ergoplatform.org/en/)
 A service to be used for bypassing node requirement of dApps on Ergo.
 See [this](https://www.ergoforum.org/t/tx-assembler-service-bypassing-node-requirement-for-dapps/443)
 for more technical details.
 
-## WHY?
+## Why?
 dApp developers need some kind of bridge to access user's assets in a secure manner.
 For example, the [Ergo Auction House](http://ergoauctions.org) needs to use user's funds 
-to place bid on user's desired auction. That kind of secure access is possible through some sort of wallet APIs;
+to place bid on the user's desired auction. That kind of secure access is possible through some sort of wallet APIs;
 For example, Yoroi wallet
 has plans to add support for such [bridge between the wallet and dApps](https://cardanoupdates.com/docs/98524716-9e4c-4aeb-b462-08ec701b7f6c). However, that may take some time, also, from the
 decentralization perspective, it is good to have alternative options!
@@ -25,7 +25,7 @@ dApps can register some request to the service by posting to `/follow` with the 
 * `address`: This is the address that the service follows and basically is where the user sends her assets to.
 This contract behind this address must be such that allows the service to do two things;
 first, using assets to assemble the requsted transaction, second, return the assets to the user in case of any failures.
-A well-designed contract and hense `address` must be such that prevent the service from stealing the assets.
+A well-designed contract, and hence, `address` must prevent the service from stealing the assets.
 For example in case of the Auction House and placing bids, the following is the contract for the `address` field of the registered request:
     ```scala
     {
@@ -43,7 +43,7 @@ For example in case of the Auction House and placing bids, the following is the 
       sigmaProp(placeBid || returnFunds)
     }
     ```
-    As explained, The two part of the contract allows the service to place specifically the bid that the user has requested
+    As explained, the two parts of the contract allow the service to place specifically the bid that the user has requested
     or return the assets to the user! 
     
     Another important aspect of this `address` is that it should be unique per interaction;
@@ -64,11 +64,11 @@ For example in case of the Auction House and placing bids, the following is the 
   So if the user sends more than she is supposed to, all her assets will be returned to her.
   On the other hand, if the current deposited assets are less than the requirements, the service will wait for more deposits so the requirements become satisfied.
   
-  As a future work, would be nice to have some more kind of requirements. For example `>=` and `<=` requirements in addition to exact equality.
+  As future work, it would be nice to have some more kind of requirements. For example `>=` and `<=` requirements in addition to exact equality.
   
 * `txSpec`: This field is essentially the transaction generation request, very much like the node's `transaction/generate` endpoint
 with some changes.
-    - First of all instead of `inputsRaw` and `dataInputsRaw`, `inputs` and `dataInputs` must be provided which means
+    - First of all, instead of `inputsRaw` and `dataInputsRaw`, `inputs` and `dataInputs` must be provided which means
     dApss don't need to have access to a node to get raw serialization of boxes and they can provide the box id instead.
     - Second, this `txSpec` obviously should contain user's assets which will be sent to `address`. `inputs` field should contain
     `$userIns` wherever user's inputs should be placed. As an example, if user's input(s) must be the last input of the transaction,
@@ -79,7 +79,7 @@ with some changes.
             "inputs": [..., "$userIns"] // ... can be other inputs (box ids)
       }
         ```
-    The below is a complete example of `txSpec` field for placing a 0.2 ERG bid in the Ergo Auction House. Note that the user's inputs will be the first inputs of the transaction by specifying `$userIns` first; The second input is the current auction box.
+    Below is a complete example of `txSpec` field for placing a 0.2 ERG bid in the Ergo Auction House. Note that the user's inputs will be the first inputs of the transaction by specifying `$userIns` first; The second input is the current auction box.
     ```
      {
        // other fields

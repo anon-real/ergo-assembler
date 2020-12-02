@@ -211,6 +211,6 @@ $ docker run -p 8080:8080 \
   --restart=always \
   -v /desired/path/configFile.conf:/home/ergo/application.conf \
   -v /empty/folder/path/:/home/ergo/data/ \
-  -d ergo-assembler:latest
+  -d anonreal/ergo-assembler:latest
 ```
 The assembler is up and running on port 8080.

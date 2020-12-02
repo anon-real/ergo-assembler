@@ -204,7 +204,7 @@ only parameter unknown to the dApp developers and different aspects of it should
 used in the `txSpec`.
 
 ## Docker quick start
-To use [dockerized assembler](https://hub.docker.com/repository/docker/anonreal/ergro-assemble):
+To use [dockerized assembler](https://hub.docker.com/repository/docker/anonreal/ergo-assembler):
 ```shell
 $ mkdir /empty/folder/path
 $ chown -R 9052:9052 /empty/folder/path

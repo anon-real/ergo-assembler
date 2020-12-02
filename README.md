@@ -204,4 +204,15 @@ only parameter unknown to the dApp developers and different aspects of it should
 used in the `txSpec`.
 
 ## Docker quick start
-TODO
+To use [dockerized assembler](https://hub.docker.com/r/), create your desired config file and an empty folder to be used by container for database and run the assembler:
+```shell
+$ mkdir /empty/folder/path
+$ chown -R 9052:9052 /empty/folder/path
+$ docker build -t ergo-assembler .
+$ docker run -p 8080:8080 \
+  --restart=always \
+  -v /desired/path/configFile.conf:/home/ergo/application.conf \
+  -v /empty/folder/path/:/home/ergo/data/ \
+  -d ergo-assembler:latest
+```
+You can use 8080 port to work with api's assembler.

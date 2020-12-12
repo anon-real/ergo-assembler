@@ -58,6 +58,7 @@ class NodeService @Inject()() {
     val body =
       s"""{
          |  "scanName": "assembler",
+         |  "walletInteraction": "off",
          |  "trackingRule": {
          |    "predicate": "equals",
          |    "value": "$encoded"

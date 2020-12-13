@@ -3,7 +3,7 @@ package services
 import java.util.Calendar
 
 import dao.{AssembleResDAO, AssemblyReqDAO, ReqSummaryDAO}
-import io.circe.Json
+import io.circe.{Json, JsonNumber}
 import javax.inject.Inject
 import models.{Assembled, AssemblyReq, Stats}
 import play.api.Logger
@@ -105,7 +105,26 @@ class RequestHandler @Inject()(nodeService: NodeService, assemblyReqDAO: Assembl
   def startTx(req: AssemblyReq, boxes: Seq[Json]): Unit = {
     val txSpec = parse(req.txSpec).getOrElse(Json.Null)
     val fee = txSpec.hcursor.downField("fee").as[Long].getOrElse(Conf.returnTxFee)
-    val txReqs = txSpec.hcursor.downField("requests").as[Seq[Json]].getOrElse(Seq())
+    var txReqs = txSpec.hcursor.downField("requests").as[Seq[Json]].getOrElse(Seq())
+    if (boxes.length == 1) {
+      val assets = boxes.head.hcursor.downField("assets").as[Seq[Json]].getOrElse(Seq())
+      if (assets.length == 1) {
+        val tokenId = assets.head.hcursor.downField("tokenId").as[String].getOrElse("")
+        val amount = assets.head.hcursor.downField("amount").as[JsonNumber].getOrElse(null)
+        txReqs = txReqs.map(req => {
+          req.hcursor.downField("assets").withFocus(assets => {
+            assets.mapArray(lstAssets => {
+              lstAssets.map(asset => {
+                if (asset.hcursor.downField("tokenId").as[String].getOrElse("") == "$userIns.token") {
+                  asset.hcursor.downField("tokenId").withFocus(_.mapString(_ => tokenId)).top.get
+                    .hcursor.downField("amount").withFocus(_.mapNumber(_ => amount)).top.get
+                } else asset
+              })
+            })
+          }).top.get
+        })
+      }
+    }
     var inputRaws: Seq[String] = Seq()
     val userRaws = boxes.map(box => box.hcursor.downField("box").as[Json].getOrElse(Json.Null).
       hcursor.downField("boxId").as[String].getOrElse("")).map(id => nodeService.getRaw(id))

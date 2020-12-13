@@ -56,4 +56,7 @@ fullClasspath in assembly += Attributed.blank(PlayKeys.playPackageAssets.value)
 
 javaOptions in Test += "-Dconfig.file=conf/test.conf"
 
+javaOptions in Universal ++= Seq(
+  "-Dpidfile.path=/dev/null"
+)
 

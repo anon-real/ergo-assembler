@@ -107,7 +107,8 @@ class RequestHandler @Inject()(nodeService: NodeService, assemblyReqDAO: Assembl
     val fee = txSpec.hcursor.downField("fee").as[Long].getOrElse(Conf.returnTxFee)
     var txReqs = txSpec.hcursor.downField("requests").as[Seq[Json]].getOrElse(Seq())
     if (boxes.length == 1) {
-      val assets = boxes.head.hcursor.downField("assets").as[Seq[Json]].getOrElse(Seq())
+      val assets = boxes.head.hcursor.downField("box").as[Json].getOrElse(Json.Null)
+        .hcursor.downField("assets").as[Seq[Json]].getOrElse(Seq())
       if (assets.length == 1) {
         val tokenId = assets.head.hcursor.downField("tokenId").as[String].getOrElse("")
         val amount = assets.head.hcursor.downField("amount").as[JsonNumber].getOrElse(null)

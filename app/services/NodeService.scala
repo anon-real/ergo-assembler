@@ -180,7 +180,7 @@ class NodeService @Inject()() {
       s"""{
          |  "address": "$address",
          |  "value": $erg,
-         |  "assets": [${changeAsset.mkString(",")}]
+         |  "assets": [${changeAsset}]
          |}""".stripMargin
 
     val request =

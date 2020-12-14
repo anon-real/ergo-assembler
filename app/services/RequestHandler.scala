@@ -54,6 +54,7 @@ class RequestHandler @Inject()(nodeService: NodeService, assemblyReqDAO: Assembl
         reqSummaryDAO.partialUpdate(req.id, tx.noSpaces, Stats.returnSuccess) recover {
           case e: Exception => e.printStackTrace()
         }
+        logger.info(s"return tx for ${req.id} - ${req.scanId} successfully: ${tx.hcursor.downField("id").as[String].getOrElse("")}")
         nodeService.broadcastTx(tx.noSpaces)
 
       } else {

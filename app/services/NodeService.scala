@@ -1,14 +1,14 @@
 package services
 
 import io.circe.Json
+import io.circe.parser._
 import javax.inject.{Inject, Singleton}
 import play.api.Logger
 import scalaj.http.Http
-import io.circe.parser._
-import utils.Conf
 import scorex.util.encode.Base16
 import sigmastate.Values.ByteArrayConstant
 import sigmastate.serialization.ValueSerializer
+import utils.Conf
 
 import scala.collection.mutable
 

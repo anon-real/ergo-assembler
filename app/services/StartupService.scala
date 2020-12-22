@@ -8,8 +8,8 @@ import play.api.inject.ApplicationLifecycle
 import slick.jdbc.JdbcProfile
 import utils.Conf
 
-import scala.concurrent.{ExecutionContext, Future}
 import scala.concurrent.duration._
+import scala.concurrent.{ExecutionContext, Future}
 
 @Singleton
 class StartupService @Inject()(protected val dbConfigProvider: DatabaseConfigProvider, appLifecycle: ApplicationLifecycle,

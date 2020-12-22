@@ -3,12 +3,13 @@ package services
 import java.util.Calendar
 
 import dao.{AssembleResDAO, AssemblyReqDAO, ReqSummaryDAO}
+import io.circe.jawn._
 import io.circe.{Json, JsonNumber}
 import javax.inject.Inject
 import models.{Assembled, AssemblyReq, Stats}
 import play.api.Logger
 import utils.Conf
-import io.circe.jawn._
+import utils.Utils._
 
 import scala.collection.mutable
 import scala.concurrent.ExecutionContext
@@ -37,7 +38,7 @@ class RequestHandler @Inject()(nodeService: NodeService, assemblyReqDAO: Assembl
         }
       })
     }) recover {
-      case e: Exception => e.printStackTrace()
+      case e: Throwable => logger.error(getStackTraceStr(e))
     }
   }
 
@@ -49,10 +50,10 @@ class RequestHandler @Inject()(nodeService: NodeService, assemblyReqDAO: Assembl
       val ok = tx.hcursor.keys.getOrElse(Seq()).exists(key => key == "id")
       if (ok) {
         assembleResDAO.insert(Assembled(req, tx.noSpaces)) recover {
-          case e: Exception => e.printStackTrace()
+          case e: Throwable => logger.error(getStackTraceStr(e))
         }
         reqSummaryDAO.partialUpdate(req.id, tx.noSpaces, Stats.returnSuccess) recover {
-          case e: Exception => e.printStackTrace()
+          case e: Throwable => logger.error(getStackTraceStr(e))
         }
         logger.info(s"return tx for ${req.id} - ${req.scanId} successfully: ${tx.hcursor.downField("id").as[String].getOrElse("")}")
         nodeService.broadcastTx(tx.noSpaces)
@@ -60,12 +61,12 @@ class RequestHandler @Inject()(nodeService: NodeService, assemblyReqDAO: Assembl
       } else {
         logger.warn(s"could not return assets of ${req.id} - ${req.scanId}, error: ${tx.noSpaces}")
         reqSummaryDAO.partialUpdate(req.id, null, Stats.returnFailed) recover {
-          case e: Exception => e.printStackTrace()
+          case e: Throwable => logger.error(getStackTraceStr(e))
         }
       }
     } else {
       reqSummaryDAO.partialUpdate(req.id, null, Stats.timeout) recover {
-        case e: Exception => e.printStackTrace()
+        case e: Throwable => logger.error(getStackTraceStr(e))
       }
     }
 
@@ -149,10 +150,10 @@ class RequestHandler @Inject()(nodeService: NodeService, assemblyReqDAO: Assembl
       logger.info(s"generated tx for ${req.id} - ${req.scanId} successfully: ${tx.hcursor.downField("id").as[String].getOrElse("")}")
       assemblyReqDAO.deleteById(req.id) map (_ => {
         assembleResDAO.insert(Assembled(req, tx.noSpaces)) recover {
-          case e: Exception => e.printStackTrace()
+          case e: Throwable => logger.error(getStackTraceStr(e))
         }
         reqSummaryDAO.partialUpdate(req.id, tx.noSpaces, Stats.success) recover {
-          case e: Exception => e.printStackTrace()
+          case e: Throwable => logger.error(getStackTraceStr(e))
         }
         nodeService.broadcastTx(tx.noSpaces)
       })

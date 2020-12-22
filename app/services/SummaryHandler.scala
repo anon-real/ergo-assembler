@@ -6,6 +6,7 @@ import dao.ReqSummaryDAO
 import javax.inject.Inject
 import play.api.Logger
 import utils.Conf
+import utils.Utils._
 
 import scala.concurrent.ExecutionContext
 
@@ -24,7 +25,7 @@ class SummaryHandler @Inject()(nodeService: NodeService, reqSummaryDAO: ReqSumma
         })
         logger.info(s"removed ${res.length} summaries from db!")
       }) recover {
-        case e: Exception => e.printStackTrace()
+        case e: Throwable => logger.error(getStackTraceStr(e))
       }
 
     } catch {

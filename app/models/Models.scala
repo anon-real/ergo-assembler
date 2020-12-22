@@ -3,7 +3,6 @@ package models
 import java.util.{Calendar, UUID}
 
 import io.circe._
-import io.circe.parser._
 
 
 case class AssemblyReq(id: String, var scanId: Int, address: String, returnTo: String, startWhen: String, txSpec: String, timestamp: Long) {

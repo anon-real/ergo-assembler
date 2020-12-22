@@ -8,10 +8,7 @@ import models.{Assembly, Summary}
 import play.api.Logger
 import play.api.libs.circe.Circe
 import play.api.mvc._
-import scorex.util.encode.Base16
 import services.NodeService
-import sigmastate.Values.ByteArrayConstant
-import sigmastate.serialization.ValueSerializer
 
 import scala.concurrent.{ExecutionContext, Future}
 

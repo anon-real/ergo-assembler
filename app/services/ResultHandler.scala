@@ -9,6 +9,7 @@ import javax.inject.Inject
 import models.AssembleRes
 import play.api.Logger
 import utils.Conf
+import utils.Utils._
 
 import scala.concurrent.ExecutionContext
 
@@ -26,7 +27,7 @@ class ResultHandler @Inject()(nodeService: NodeService, assemblyReqDAO: Assembly
           if (req.timestamp <= lastValidTime) {
             println(s"timeout for ${req.id} - ${req.scanId}; will stop following the tx!")
             assembleResDAO.deleteById(req.id) recover {
-              case e: Exception => e.printStackTrace()
+              case e: Throwable => logger.error(getStackTraceStr(e))
             }
 
           } else {
@@ -39,7 +40,7 @@ class ResultHandler @Inject()(nodeService: NodeService, assemblyReqDAO: Assembly
         }
       })
     }) recover {
-      case e: Exception => e.printStackTrace()
+      case e: Throwable => logger.error(getStackTraceStr(e))
     }
   }
 
@@ -52,17 +53,17 @@ class ResultHandler @Inject()(nodeService: NodeService, assemblyReqDAO: Assembly
       if (!nodeService.isSpent(out)) {
         logger.info(s"tx is mined for ${res.id} - ${res.scanId}; will stop following it!")
         assembleResDAO.deleteById(res.id) recover {
-          case e: Exception => e.printStackTrace()
+          case e: Throwable => logger.error(getStackTraceStr(e))
         }
       } else {
         assembleResDAO.deleteById(res.id) map (_ => {
           logger.info(s"tx is invalid for ${res.id} - ${res.scanId}; will try to create tx again or return it!")
           assemblyReqDAO.insert(res.toReq) recover {
-            case e: Exception => e.printStackTrace()
+            case e: Throwable => logger.error(getStackTraceStr(e))
           }
 
         }) recover {
-          case e: Exception => e.printStackTrace()
+          case e: Throwable => logger.error(getStackTraceStr(e))
         }
       }
       nodeService.broadcastTx(res.tx)

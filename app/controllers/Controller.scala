@@ -9,6 +9,7 @@ import play.api.Logger
 import play.api.libs.circe.Circe
 import play.api.mvc._
 import services.NodeService
+import utils.Conf
 
 import scala.concurrent.{ExecutionContext, Future}
 
@@ -40,7 +41,8 @@ class Controller @Inject()(cc: ControllerComponents, actorSystem: ActorSystem,
           logger.info(s"registered ${req.id} - ${req.scanId}")
           Ok(
             s"""{
-               |  "id": "${req.id}"
+               |  "id": "${req.id}",
+               |  "dueTime": ${Conf.followRequestFor}
                |}""".stripMargin
           ).as("application/json")
 

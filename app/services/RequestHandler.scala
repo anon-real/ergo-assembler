@@ -115,16 +115,19 @@ class RequestHandler @Inject()(nodeService: NodeService, assemblyReqDAO: Assembl
         val tokenId = assets.head.hcursor.downField("tokenId").as[String].getOrElse("")
         val amount = assets.head.hcursor.downField("amount").as[JsonNumber].getOrElse(null)
         txReqs = txReqs.map(req => {
-          req.hcursor.downField("assets").withFocus(assets => {
-            assets.mapArray(lstAssets => {
-              lstAssets.map(asset => {
-                if (asset.hcursor.downField("tokenId").as[String].getOrElse("") == "$userIns.token") {
-                  asset.hcursor.downField("tokenId").withFocus(_.mapString(_ => tokenId)).top.get
-                    .hcursor.downField("amount").withFocus(_.mapNumber(_ => amount)).top.get
-                } else asset
+          if (req.hcursor.downField("assets").as[Seq[Json]].getOrElse(Seq()).isEmpty) req
+          else {
+            req.hcursor.downField("assets").withFocus(assets => {
+              assets.mapArray(lstAssets => {
+                lstAssets.map(asset => {
+                  if (asset.hcursor.downField("tokenId").as[String].getOrElse("") == "$userIns.token") {
+                    asset.hcursor.downField("tokenId").withFocus(_.mapString(_ => tokenId)).top.get
+                      .hcursor.downField("amount").withFocus(_.mapNumber(_ => amount)).top.get
+                  } else asset
+                })
               })
-            })
-          }).top.get
+            }).top.get
+          }
         })
       }
     }

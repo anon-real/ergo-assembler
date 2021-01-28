@@ -54,6 +54,7 @@ class ResultHandler @Inject()(nodeService: NodeService, assemblyReqDAO: Assembly
         val cur = out.hcursor.downField("boxId").as[String].getOrElse("")
         if (!nodeService.isSpent(cur)) {
           isMined = true
+          return
         }
       })
       if (isMined) {

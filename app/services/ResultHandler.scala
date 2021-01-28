@@ -48,9 +48,15 @@ class ResultHandler @Inject()(nodeService: NodeService, assemblyReqDAO: Assembly
     if (!nodeService.isTxValid(res.tx)) {
       // it is either mined or really invalid!
       val tx = parse(res.tx).getOrElse(Json.Null)
-      val out = tx.hcursor.downField("outputs").as[Seq[Json]].getOrElse(Seq()).head
-        .hcursor.downField("boxId").as[String].getOrElse("")
-      if (!nodeService.isSpent(out)) {
+      val outs = tx.hcursor.downField("outputs").as[Seq[Json]].getOrElse(Seq())
+      var isMined = false
+      outs.foreach(out => {
+        val cur = out.hcursor.downField("boxId").as[String].getOrElse("")
+        if (!nodeService.isSpent(cur)) {
+          isMined = true
+        }
+      })
+      if (isMined) {
         logger.info(s"tx is mined for ${res.id} - ${res.scanId}; will stop following it!")
         assembleResDAO.deleteById(res.id) recover {
           case e: Throwable => logger.error(getStackTraceStr(e))

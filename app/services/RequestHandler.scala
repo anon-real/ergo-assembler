@@ -86,20 +86,20 @@ class RequestHandler @Inject()(nodeService: NodeService, assemblyReqDAO: Assembl
       .hcursor.downField("value").as[Long].getOrElse(0L)).sum
     val when = parse(req.startWhen).getOrElse(parse("{}").getOrElse(Json.Null))
     val whenKeys = when.hcursor.keys.getOrElse(Seq())
-    var ok = whenKeys.forall(key => {
+    val ok = whenKeys.forall(key => {
       when.hcursor.downField(key).as[Long].getOrElse(0L) == changeTokens.getOrElse(key, 0L)
     })
-    if (!(req.txSpec contains "$userIns.token")) {
-      ok = ok && changeTokens.forall(tok => whenKeys.toList.contains(tok._1))
-    }
     if (ok) {
       logger.info(s"all ok for ${req.id} - ${req.scanId}, starting...")
       startTx(req, boxes)
 
     } else {
-      val more = when.hcursor.keys.getOrElse(Seq()).exists(key => {
+      var more = when.hcursor.keys.getOrElse(Seq()).exists(key => {
         when.hcursor.downField(key).as[Long].getOrElse(0L) < changeTokens.getOrElse(key, 0L)
       })
+      if (!(req.txSpec contains "$userIns.token")) {
+        more = more || !changeTokens.forall(tok => whenKeys.toList.contains(tok._1))
+      }
 
       if (more) {
         logger.info(s"more deposit than requested ${req.id} - ${req.scanId}, removing...")

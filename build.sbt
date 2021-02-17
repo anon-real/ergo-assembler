@@ -2,7 +2,7 @@ import sbt.Attributed
 
 name := "ergo-assembler"
 
-version := "0.1"
+version := "1.0"
 
 lazy val `distributedsigsclient` = (project in file(".")).enablePlugins(PlayScala)
 

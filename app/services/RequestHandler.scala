@@ -21,6 +21,10 @@ class RequestHandler @Inject()(nodeService: NodeService, assemblyReqDAO: Assembl
 
   def handleReqs(): Unit = {
     logger.info("Handling requests...")
+    if (!nodeService.isWalletUnlocked) {
+      logger.info("Wallet is locked, going to unlock it...")
+      logger.error(nodeService.unlockWallet(Conf.walletPass).toString)
+    }
     val lastValidTime = Calendar.getInstance().getTimeInMillis - Conf.followRequestFor * 1000
     assemblyReqDAO.all.map(reqs => {
       reqs.foreach(req => {

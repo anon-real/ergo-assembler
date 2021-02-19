@@ -207,4 +207,30 @@ class NodeService @Inject()() {
     if (res.isSuccess) det.hcursor.downField("address").as[String].getOrElse("")
     else throw new Exception(det.hcursor.downField("detail").as[String].getOrElse(""))
   }
+
+  /**
+   * get wallet status
+   *
+   * @return true if wallet is unlocked, lese false
+   */
+  def isWalletUnlocked: Boolean = {
+    val res = Http(s"${Conf.nodeUrl}/wallet/status").headers(defaultHeader).asString
+    val bodyJs = parse(res.body).getOrElse(Json.Null)
+    bodyJs.hcursor.downField("isUnlocked").as[Boolean].getOrElse(false)
+  }
+
+  /**
+   * unlocks wallet
+   *
+   * @param walletPass wallet password
+   * @return status
+   */
+  def unlockWallet(walletPass: String): String = {
+    val passJson =
+      s"""{
+        |  "pass": "$walletPass"
+        |}""".stripMargin
+    val res = Http(s"${Conf.nodeUrl}/wallet/unlock").postData(passJson).headers(defaultHeader).asString
+    res.body
+  }
 }

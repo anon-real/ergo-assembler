@@ -9,6 +9,7 @@ object Conf {
 
   lazy val nodeUrl: String = readKey("node.url").replaceAll("/$", "")
   lazy val nodeApi: String = readKey("node.api_key", "")
+  lazy val walletPass: String = readKey("node.wallet_pass", "")
   lazy val explorerUrl: String = readKey("explorer.url").replaceAll("/$", "")
 
   lazy val followRequestFor: Long = readKey("followRequestFor").toInt

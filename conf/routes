@@ -1,9 +1,11 @@
 + nocsrf
-POST        /follow                           controllers.Controller.follow
+POST        /follow                controllers.Controller.follow
 + nocsrf
-GET         /result/:id                       controllers.Controller.result(id: String)
+GET        /result/:id             controllers.Controller.result(id: String)
 + nocsrf
-POST        /compile                          controllers.Controller.compile
+GET        /return/:mine/:address        controllers.Controller.returnTx(mine: String, address: String)
 + nocsrf
-GET         /assets/*file                   controllers.Assets.versioned(path="/public", file: Asset)
+POST        /compile               controllers.Controller.compile
++ nocsrf
+GET        /assets/*file           controllers.Assets.versioned(path="/public", file: Asset)
 

@@ -137,6 +137,17 @@ class NodeService @Inject()() {
   }
 
   /**
+   * gets unspent box
+   *
+   * @param boxId box id
+   * @return box if exists
+   */
+  def getUnspentBox(boxId: String): Json = {
+    val res = Http(s"${Conf.nodeUrl}/utxo/withPool/byId/$boxId").headers(defaultHeader).asString
+    parse(res.body).getOrElse(throw new Exception("No such box - maybe node is not synced"))
+  }
+
+  /**
    * checks whether a specific tx is valid or not
    *
    * @param tx transaction body
@@ -160,16 +171,13 @@ class NodeService @Inject()() {
    */
   def sendBoxesTo(boxes: Seq[Json], address: String): Json = {
     val changeTokens: mutable.Map[String, Long] = mutable.Map.empty
-    boxes.foreach(box => box.hcursor.downField("box").as[Json].getOrElse(Json.Null).
-      hcursor.downField("assets").as[Seq[Json]].getOrElse(Seq()).foreach(token => {
+    boxes.foreach(box => box.hcursor.downField("assets").as[Seq[Json]].getOrElse(Seq()).foreach(token => {
       val tokenId = token.hcursor.downField("tokenId").as[String].getOrElse("")
       changeTokens(tokenId) = changeTokens.getOrElse(tokenId, 0L) + token.hcursor.downField("amount").as[Long].getOrElse(0L)
     }))
-    val erg = boxes.map(box => box.hcursor.downField("box").as[Json].getOrElse(Json.Null)
-      .hcursor.downField("value").as[Long].getOrElse(0L)).sum - Conf.returnTxFee
+    val erg = boxes.map(box => box.hcursor.downField("value").as[Long].getOrElse(0L)).sum - Conf.returnTxFee
 
-    val ids = boxes.map(box => box.hcursor.downField("box").as[Json].getOrElse(Json.Null).
-      hcursor.downField("boxId").as[String].getOrElse(""))
+    val ids = boxes.map(box => box.hcursor.downField("boxId").as[String].getOrElse(""))
 
     val changeAsset = changeTokens.map(token =>
       s"""{

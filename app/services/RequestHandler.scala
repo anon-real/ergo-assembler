@@ -50,7 +50,7 @@ class RequestHandler @Inject()(nodeService: NodeService, assemblyReqDAO: Assembl
     logger.info(s"will remove request: ${req.id} with scanId: ${req.scanId}")
     val boxes = nodeService.unspentBoxesFor(req.scanId)
     if (boxes.nonEmpty) {
-      val tx = nodeService.sendBoxesTo(boxes, req.returnTo)
+      val tx = nodeService.sendBoxesTo(boxes.map(box => box.hcursor.downField("box").as[Json].getOrElse(Json.Null)), req.returnTo)
       val ok = tx.hcursor.keys.getOrElse(Seq()).exists(key => key == "id")
       if (ok) {
         assembleResDAO.insert(Assembled(req, tx.noSpaces)) recover {

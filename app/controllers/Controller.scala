@@ -8,6 +8,7 @@ import models.{Assembly, Summary}
 import play.api.Logger
 import play.api.libs.circe.Circe
 import play.api.mvc._
+import scalaj.http.Http
 import services.NodeService
 import utils.Conf
 
@@ -19,6 +20,7 @@ class Controller @Inject()(cc: ControllerComponents, actorSystem: ActorSystem,
                            reqSummaryDAO: ReqSummaryDAO, assemblyReqDAO: AssemblyReqDAO, nodeService: NodeService)
                           (implicit exec: ExecutionContext)
   extends AbstractController(cc) with Circe {
+  private val defaultHeader: Seq[(String, String)] = Seq[(String, String)](("Content-Type", "application/json"))
 
   private val logger: Logger = Logger(this.getClass)
 
@@ -92,6 +94,26 @@ class Controller @Inject()(cc: ControllerComponents, actorSystem: ActorSystem,
            |}""".stripMargin).as("application/json")
     } catch {
       case e: Exception => errorResponse(e)
+    }
+  }
+
+  def returnTx(mine: String, address: String): Action[AnyContent] = Action { implicit request: Request[AnyContent] =>
+
+    try {
+      val res = Http(s"https://api.ergoplatform.com/api/v0/transactions/boxes/byAddress/unspent/${address}").headers(defaultHeader).asString
+      val boxes = io.circe.parser.parse(res.body).getOrElse(Json.Null).as[Seq[Json]].getOrElse(Seq())
+        .map(box => box.hcursor.downField("id").as[String].getOrElse(throw new Exception("wrong format")))
+        .map(id => nodeService.getUnspentBox(id))
+      val tx = nodeService.sendBoxesTo(boxes, mine)
+      val ok = tx.hcursor.keys.getOrElse(Seq()).exists(key => key == "id")
+      if (ok) {
+        nodeService.broadcastTx(tx.noSpaces)
+        Ok(tx.hcursor.downField("id").as[String].getOrElse("")).as("application/json")
+      }
+      else throw new Exception(s"Could not generate tx, ${tx.noSpaces}")
+    } catch {
+      case e: Exception =>
+        errorResponse(e)
     }
   }
 }

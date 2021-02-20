@@ -64,10 +64,6 @@ class RequestHandler @Inject()(nodeService: NodeService, assemblyReqDAO: Assembl
 
       } else {
         logger.warn(s"could not return assets of ${req.id} - ${req.scanId}, error: ${tx.noSpaces}")
-        if (tx.noSpaces.contains("BufferUnderflowException")) {
-          logger.warn("BufferUnderflowException detected for returning, will not remove the request.")
-          return
-        }
         reqSummaryDAO.partialUpdate(req.id, null, Stats.returnFailed) recover {
           case e: Throwable => logger.error(getStackTraceStr(e))
         }
@@ -175,10 +171,6 @@ class RequestHandler @Inject()(nodeService: NodeService, assemblyReqDAO: Assembl
 
     } else {
       logger.warn(s"could not generate tx, returning.... ${req.id} - ${req.scanId}, error: ${tx.noSpaces}")
-      if (tx.noSpaces.contains("BufferUnderflowException")) {
-        logger.warn("BufferUnderflowException detected, will not remove the request.")
-        return
-      }
       handleRemoval(req, Stats.returnFailed)
     }
   }

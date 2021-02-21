@@ -26,7 +26,9 @@ class ResultHandler @Inject()(nodeService: NodeService, assemblyReqDAO: Assembly
         try {
           if (req.timestamp <= lastValidTime) {
             println(s"timeout for ${req.id} - ${req.scanId}; will stop following the tx!")
-            assembleResDAO.deleteById(req.id) recover {
+            assembleResDAO.deleteById(req.id) map (_ => {
+              nodeService.deregisterScan(req.scanId)
+            }) recover {
               case e: Throwable => logger.error(getStackTraceStr(e))
             }
 
@@ -59,7 +61,9 @@ class ResultHandler @Inject()(nodeService: NodeService, assemblyReqDAO: Assembly
       })
       if (isMined) {
         logger.info(s"tx is mined for ${res.id} - ${res.scanId}; will stop following it!")
-        assembleResDAO.deleteById(res.id) recover {
+        assembleResDAO.deleteById(res.id) map (_ => {
+          nodeService.deregisterScan(res.scanId)
+        }) recover {
           case e: Throwable => logger.error(getStackTraceStr(e))
         }
       } else {

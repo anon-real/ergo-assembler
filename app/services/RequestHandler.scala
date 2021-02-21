@@ -64,12 +64,16 @@ class RequestHandler @Inject()(nodeService: NodeService, assemblyReqDAO: Assembl
 
       } else {
         logger.warn(s"could not return assets of ${req.id} - ${req.scanId}, error: ${tx.noSpaces}")
-        reqSummaryDAO.partialUpdate(req.id, null, Stats.returnFailed) recover {
+        reqSummaryDAO.partialUpdate(req.id, null, Stats.returnFailed) map (_ => {
+          nodeService.deregisterScan(req.scanId)
+        }) recover {
           case e: Throwable => logger.error(getStackTraceStr(e))
         }
       }
     } else {
-      reqSummaryDAO.partialUpdate(req.id, null, Stats.timeout) recover {
+      reqSummaryDAO.partialUpdate(req.id, null, Stats.timeout) map (_ => {
+        nodeService.deregisterScan(req.scanId)
+      }) recover {
         case e: Throwable => logger.error(getStackTraceStr(e))
       }
     }

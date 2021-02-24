@@ -16,8 +16,8 @@ object Conf {
   (1 until 10).foreach(nodeNum => {
     if (config.has(s"node${nodeNum}")) {
       availableNodeUrls = availableNodeUrls :+ readKey(s"node${nodeNum}.url").replaceAll("/$", "")
-      availableNodeApis = availableNodeUrls :+ readKey(s"node${nodeNum}.api_key", "")
-      availableNodeWallets = availableNodeUrls :+ readKey(s"node${nodeNum}.wallet_pass", "")
+      availableNodeApis = availableNodeApis :+ readKey(s"node${nodeNum}.api_key", "")
+      availableNodeWallets = availableNodeWallets :+ readKey(s"node${nodeNum}.wallet_pass", "")
     }
   })
 

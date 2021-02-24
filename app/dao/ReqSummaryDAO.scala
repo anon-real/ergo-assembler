@@ -17,6 +17,8 @@ trait ReqSummaryComponent {
 
     def scanId = column[Int]("SCAN_ID")
 
+    def address = column[String]("ADDRESS")
+
     def returnTo = column[String]("RETURN_TO")
 
     def tx = column[String]("TX")
@@ -25,9 +27,8 @@ trait ReqSummaryComponent {
 
     def detail = column[String]("DETAIL")
 
-    def * = (id, scanId, returnTo, tx.?, timestamp, detail) <> (ReqSummary.tupled, ReqSummary.unapply)
+    def * = (id, scanId, address, returnTo, tx.?, timestamp, detail) <> (ReqSummary.tupled, ReqSummary.unapply)
   }
-
 }
 
 @Singleton()
@@ -81,6 +82,4 @@ class ReqSummaryDAO @Inject()(protected val dbConfigProvider: DatabaseConfigProv
    * @param id request id
    */
   def deleteById(id: String): Future[Int] = db.run(results.filter(req => req.id === id).delete)
-
-  //  def upsert(req: ReqSummary): Future[Unit] = db.run(results.insertOrUpdate(req).map(_ => ()))
 }

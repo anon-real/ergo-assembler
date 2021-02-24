@@ -20,7 +20,6 @@ class Controller @Inject()(cc: ControllerComponents, actorSystem: ActorSystem,
                            reqSummaryDAO: ReqSummaryDAO, assemblyReqDAO: AssemblyReqDAO, nodeService: NodeService)
                           (implicit exec: ExecutionContext)
   extends AbstractController(cc) with Circe {
-  private val defaultHeader: Seq[(String, String)] = Seq[(String, String)](("Content-Type", "application/json"))
 
   private val logger: Logger = Logger(this.getClass)
 
@@ -35,6 +34,7 @@ class Controller @Inject()(cc: ControllerComponents, actorSystem: ActorSystem,
 
   def follow: Action[Json] = Action(circe.json).async { implicit request =>
     try {
+      if (!Conf.functioning || !Conf.functioningAdmin) throw new Exception("Assembler is not functioning currently")
       val req = Assembly(request.body)
       req.scanId = nodeService.registerScan(req.address)
       val summary = Summary(req)
@@ -87,6 +87,7 @@ class Controller @Inject()(cc: ControllerComponents, actorSystem: ActorSystem,
 
   def compile: Action[Json] = Action(circe.json) { implicit request =>
     try {
+      if (!Conf.functioning || !Conf.functioningAdmin) throw new Exception("Assembler is not functioning currently")
       val script = request.body.as[String].getOrElse("")
       Ok(
         s"""{
@@ -98,19 +99,71 @@ class Controller @Inject()(cc: ControllerComponents, actorSystem: ActorSystem,
   }
 
   def returnTx(mine: String, address: String): Action[AnyContent] = Action { implicit request: Request[AnyContent] =>
-
     try {
-      val res = Http(s"https://api.ergoplatform.com/api/v0/transactions/boxes/byAddress/unspent/${address}").headers(defaultHeader).asString
-      val boxes = io.circe.parser.parse(res.body).getOrElse(Json.Null).as[Seq[Json]].getOrElse(Seq())
-        .map(box => box.hcursor.downField("id").as[String].getOrElse(throw new Exception("wrong format")))
-        .map(id => nodeService.getUnspentBox(id))
-      val tx = nodeService.sendBoxesTo(boxes, mine)
-      val ok = tx.hcursor.keys.getOrElse(Seq()).exists(key => key == "id")
-      if (ok) {
-        nodeService.broadcastTx(tx.noSpaces)
-        Ok(tx.hcursor.downField("id").as[String].getOrElse("")).as("application/json")
-      }
-      else throw new Exception(s"Could not generate tx, ${tx.noSpaces}")
+      Ok(nodeService.returnFunds(mine, address)).as("application/json")
+    } catch {
+      case e: Exception =>
+        errorResponse(e)
+    }
+  }
+
+  def stop(apiKey: String): Action[AnyContent] = Action { implicit request: Request[AnyContent] =>
+    try {
+      if (apiKey == Conf.activeNodeApi) {
+        Conf.functioningAdmin = false
+        Ok("Stopped functioning")
+      } else throw new Exception("Wrong pass")
+    } catch {
+      case e: Exception =>
+        errorResponse(e)
+    }
+  }
+
+  def start(apiKey: String): Action[AnyContent] = Action { implicit request: Request[AnyContent] =>
+    try {
+      if (apiKey == Conf.activeNodeApi) {
+        Conf.functioningAdmin = true
+        Ok("Started functioning")
+      } else throw new Exception("Wrong pass")
+    } catch {
+      case e: Exception =>
+        errorResponse(e)
+    }
+  }
+
+  def ignoreTime(apiKey: String): Action[AnyContent] = Action { implicit request: Request[AnyContent] =>
+    try {
+      if (apiKey == Conf.activeNodeApi) {
+        Conf.ignoreTime = true
+        Ok("Stopped considering time for requests")
+      } else throw new Exception("Wrong pass")
+    } catch {
+      case e: Exception =>
+        errorResponse(e)
+    }
+  }
+
+  def considerTime(apiKey: String): Action[AnyContent] = Action { implicit request: Request[AnyContent] =>
+    try {
+      if (apiKey == Conf.activeNodeApi) {
+        Conf.ignoreTime = false
+        Ok("Time is now being considered for requests")
+      } else throw new Exception("Wrong pass")
+    } catch {
+      case e: Exception =>
+        errorResponse(e)
+    }
+  }
+
+  def state(): Action[AnyContent] = Action { implicit request: Request[AnyContent] =>
+    try {
+      Ok(
+        s"""{
+          |  "functioning": ${Conf.functioning},
+          |  "functioningAdmin": ${Conf.functioningAdmin},
+          |  "activeNode": ${Conf.activeNodeUrl},
+          |  "ignoreTime": ${Conf.ignoreTime}
+          |}""".stripMargin).as("application/json")
     } catch {
       case e: Exception =>
         errorResponse(e)

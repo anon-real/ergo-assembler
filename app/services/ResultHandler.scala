@@ -24,7 +24,7 @@ class ResultHandler @Inject()(nodeService: NodeService, assemblyReqDAO: Assembly
     assembleResDAO.all.map(reqs => {
       reqs.foreach(req => {
         try {
-          if (req.timestamp <= lastValidTime) {
+          if (req.timestamp <= lastValidTime && !Conf.ignoreTime) {
             println(s"timeout for ${req.id} - ${req.scanId}; will stop following the tx!")
             assembleResDAO.deleteById(req.id) map (_ => {
               nodeService.deregisterScan(req.scanId)

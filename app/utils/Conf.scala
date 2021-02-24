@@ -7,10 +7,23 @@ object Conf {
   private val logger: Logger = Logger(this.getClass)
   val config: Configuration = Configuration(ConfigFactory.load())
 
-  lazy val nodeUrl: String = readKey("node.url").replaceAll("/$", "")
-  lazy val nodeApi: String = readKey("node.api_key", "")
-  lazy val walletPass: String = readKey("node.wallet_pass", "")
+  lazy val publicNodes: Seq[String] = config.getOptional[Seq[String]]("node.public").getOrElse(Seq()).map(_.replaceAll("/$", ""))
   lazy val explorerUrl: String = readKey("explorer.url").replaceAll("/$", "")
+
+  var availableNodeUrls: Seq[String] = Seq()
+  var availableNodeApis: Seq[String] = Seq()
+  var availableNodeWallets: Seq[String] = Seq()
+  (1 until 10).foreach(nodeNum => {
+    if (config.has(s"node${nodeNum}")) {
+      availableNodeUrls = availableNodeUrls :+ readKey(s"node${nodeNum}.url").replaceAll("/$", "")
+      availableNodeApis = availableNodeUrls :+ readKey(s"node${nodeNum}.api_key", "")
+      availableNodeWallets = availableNodeUrls :+ readKey(s"node${nodeNum}.wallet_pass", "")
+    }
+  })
+
+  var activeNodeUrl: String = readKey("node1.url").replaceAll("/$", "")
+  var activeNodeApi: String = readKey("node1.api_key", "")
+  var activeNodeWallet: String = readKey("node1.wallet_pass", "")
 
   lazy val followRequestFor: Long = readKey("followRequestFor").toInt
   lazy val followRequestInterval: Long = readKey("followRequestInterval").toInt
@@ -23,6 +36,11 @@ object Conf {
   lazy val keepSummaryFor: Long = readKey("keepSummaryFor").toInt
 
   lazy val returnTxFee: Long = readKey("returnTxFee").toInt
+
+  var functioning: Boolean = true
+  var functioningAdmin: Boolean = true
+  var ignoreTime: Boolean = false
+  lazy val handleParamsInterval: Long = readKey("handleParamsInterval", "60").toInt
 
   def readKey(key: String, default: String = null): String = {
     try {

@@ -50,18 +50,18 @@ object Stats {
   val success = "success"
 }
 
-case class ReqSummary(id: String, scanId: Int, returnTo: String, tx: Option[String], timestamp: Long, details: String) {
+case class ReqSummary(id: String, scanId: Int, address: String, returnTo: String, tx: Option[String], timestamp: Long, details: String) {
   def elapsedInSec: Long = (Calendar.getInstance().getTimeInMillis - timestamp) / 1000
 
   def isReturn: Boolean = details != "success"
 }
 
 object Summary {
-  def apply(id: String, scanId: Int, returnTo: String, tx: Option[String], timestamp: Long, details: String): ReqSummary =
-    ReqSummary(id, scanId, returnTo, tx, timestamp, details)
+  def apply(id: String, scanId: Int, address: String, returnTo: String, tx: Option[String], timestamp: Long, details: String): ReqSummary =
+    ReqSummary(id, scanId, address, returnTo, tx, timestamp, details)
 
   def apply(req: AssemblyReq, tx: Option[String], timestamp: Long, details: String): ReqSummary =
-    Summary(req.id, req.scanId, req.returnTo, tx, timestamp, details)
+    Summary(req.id, req.scanId, req.address, req.returnTo, tx, timestamp, details)
 
   def apply(req: AssemblyReq): ReqSummary = Summary(req, Option.empty, Calendar.getInstance().getTimeInMillis, Stats.pending)
 

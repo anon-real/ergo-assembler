@@ -17,11 +17,21 @@ class SummaryHandler @Inject()(nodeService: NodeService, reqSummaryDAO: ReqSumma
   def handleSummaries(): Unit = {
     logger.info("Handling out of date summaries...")
     try {
+      if (Conf.ignoreTime) {
+        logger.info("did not remove any summaries; ignoreTime is true")
+        return
+      }
       val lastValidTime = Calendar.getInstance().getTimeInMillis - Conf.keepSummaryFor * 1000
       reqSummaryDAO.beforeTime(lastValidTime) map (res => {
         res.foreach(summary => {
           reqSummaryDAO.deleteById(summary.id)
           nodeService.deregisterScan(summary.scanId)
+          try {
+            val txId = nodeService.returnFunds(summary.returnTo, summary.address)
+            logger.info(s"returned funds for summary ${summary.scanId} with tx: ${txId}")
+          } catch {
+            case _: Any =>
+          }
         })
         logger.info(s"removed ${res.length} summaries from db!")
       }) recover {

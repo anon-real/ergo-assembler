@@ -1,11 +1,20 @@
 + nocsrf
-POST        /follow                controllers.Controller.follow
+POST        /follow                      controllers.Controller.follow
 + nocsrf
-GET        /result/:id             controllers.Controller.result(id: String)
+GET        /result/:id                   controllers.Controller.result(id: String)
 + nocsrf
 GET        /return/:mine/:address        controllers.Controller.returnTx(mine: String, address: String)
 + nocsrf
-POST        /compile               controllers.Controller.compile
+GET        /stop/:apiKey                 controllers.Controller.stop(apiKey: String)
 + nocsrf
-GET        /assets/*file           controllers.Assets.versioned(path="/public", file: Asset)
-
+GET        /start/:apiKey                controllers.Controller.start(apiKey: String)
++ nocsrf
+GET        /ignoreTime/:apiKey           controllers.Controller.ignoreTime(apiKey: String)
++ nocsrf
+GET        /considerTime/:apiKey         controllers.Controller.considerTime(apiKey: String)
++ nocsrf
+GET        /state                        controllers.Controller.state()
++ nocsrf
+POST        /compile                     controllers.Controller.compile
++ nocsrf
+GET        /assets/*file                 controllers.Assets.versioned(path="/public", file: Asset)

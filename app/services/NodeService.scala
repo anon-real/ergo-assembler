@@ -15,7 +15,7 @@ import scala.collection.mutable
 @Singleton
 class NodeService @Inject()() {
   private val logger: Logger = Logger(this.getClass)
-  private val defaultHeader: Seq[(String, String)] = Seq[(String, String)](("Content-Type", "application/json"), ("api_key", Conf.nodeApi))
+  private val defaultHeader: Seq[(String, String)] = Seq[(String, String)](("Content-Type", "application/json"), ("api_key", Conf.activeNodeApi))
 
   /**
    * gets box as raw, whether box is confirmed or unconfirmed
@@ -24,10 +24,10 @@ class NodeService @Inject()() {
    * @return string representing the raw box
    */
   def getRaw(boxId: String): String = {
-    val unconfirmed = Http(s"${Conf.nodeUrl}/utxo/withPool/byIdBinary/$boxId").headers(defaultHeader).asString
+    val unconfirmed = Http(s"${Conf.activeNodeUrl}/utxo/withPool/byIdBinary/$boxId").headers(defaultHeader).asString
     val unc = parse(unconfirmed.body).getOrElse(Json.Null).hcursor.downField("bytes").as[String].getOrElse("")
     if (unc.isEmpty) {
-      val res = Http(s"${Conf.nodeUrl}/utxo/byIdBinary/$boxId").headers(defaultHeader).asString
+      val res = Http(s"${Conf.activeNodeUrl}/utxo/byIdBinary/$boxId").headers(defaultHeader).asString
       parse(res.body).getOrElse(Json.Null).hcursor.downField("bytes").as[String].getOrElse("")
     } else unc
   }
@@ -39,7 +39,7 @@ class NodeService @Inject()() {
    * @return raw
    */
   def addressToRaw(address: String): String = {
-    val res = Http(s"${Conf.nodeUrl}/utils/addressToRaw/$address").headers(defaultHeader).asString
+    val res = Http(s"${Conf.activeNodeUrl}/utils/addressToRaw/$address").headers(defaultHeader).asString
     val bodyJs = parse(res.body).getOrElse(Json.Null)
     bodyJs.hcursor.downField("raw").as[String]
       .getOrElse(throw new Exception(bodyJs.hcursor.downField("detail").as[String].getOrElse("")))
@@ -64,7 +64,7 @@ class NodeService @Inject()() {
          |    "value": "$encoded"
          |  }
          |}""".stripMargin
-    val res = Http(s"${Conf.nodeUrl}/scan/register").postData(body).headers(defaultHeader).asString
+    val res = Http(s"${Conf.activeNodeUrl}/scan/register").postData(body).headers(defaultHeader).asString
     val bodyJs = parse(res.body).getOrElse(Json.Null)
     bodyJs.hcursor.downField("scanId").as[Int]
       .getOrElse(throw new Exception(s"Could not register scan ${bodyJs.hcursor.downField("detail").as[String].getOrElse("")}"))
@@ -81,7 +81,7 @@ class NodeService @Inject()() {
       s"""{
          |  "scanId": $scanId
          |}""".stripMargin
-    val res = Http(s"${Conf.nodeUrl}/scan/deregister").postData(body).headers(defaultHeader).asString
+    val res = Http(s"${Conf.activeNodeUrl}/scan/deregister").postData(body).headers(defaultHeader).asString
     res.isSuccess
   }
 
@@ -92,7 +92,7 @@ class NodeService @Inject()() {
    * @return whether it was successful or not
    */
   def broadcastTx(tx: String): Boolean = {
-    val res = Http(s"${Conf.nodeUrl}/transactions").postData(tx).headers(defaultHeader).asString
+    val res = Http(s"${Conf.activeNodeUrl}/transactions").postData(tx).headers(defaultHeader).asString
     res.isSuccess
   }
 
@@ -103,7 +103,7 @@ class NodeService @Inject()() {
    * @return list of boxes as json
    */
   def unspentBoxesFor(scanId: Int): List[Json] = {
-    val res = Http(s"${Conf.nodeUrl}/scan/unspentBoxes/$scanId?minConfirmations=-1").headers(defaultHeader).asString
+    val res = Http(s"${Conf.activeNodeUrl}/scan/unspentBoxes/$scanId?minConfirmations=-1").headers(defaultHeader).asString
     val bodyJs = parse(res.body).getOrElse(Json.Null)
     bodyJs.as[List[Json]]
       .getOrElse(throw new Exception(bodyJs.hcursor.downField("detail").as[String].getOrElse("")))
@@ -116,7 +116,7 @@ class NodeService @Inject()() {
    * @return tx json or failure json in case of error
    */
   def generateTx(request: String): Json = {
-    val res = Http(s"${Conf.nodeUrl}/wallet/transaction/generate").postData(request).headers(defaultHeader).asString
+    val res = Http(s"${Conf.activeNodeUrl}/wallet/transaction/generate").postData(request).headers(defaultHeader).asString
     parse(res.body).getOrElse(Json.Null)
   }
 
@@ -127,7 +127,7 @@ class NodeService @Inject()() {
    * @return boolean in case of successfully contacting node, exception otherwise
    */
   def isSpent(boxId: String): Boolean = {
-    val res = Http(s"${Conf.nodeUrl}/utxo/byId/$boxId").headers(defaultHeader).asString
+    val res = Http(s"${Conf.activeNodeUrl}/utxo/byId/$boxId").headers(defaultHeader).asString
     if (res.isSuccess) false
     else if (res.code == 404) true
     else {
@@ -143,7 +143,7 @@ class NodeService @Inject()() {
    * @return box if exists
    */
   def getUnspentBox(boxId: String): Json = {
-    val res = Http(s"${Conf.nodeUrl}/utxo/withPool/byId/$boxId").headers(defaultHeader).asString
+    val res = Http(s"${Conf.activeNodeUrl}/utxo/withPool/byId/$boxId").headers(defaultHeader).asString
     parse(res.body).getOrElse(throw new Exception("No such box - maybe node is not synced"))
   }
 
@@ -154,7 +154,7 @@ class NodeService @Inject()() {
    * @return boolean in case of successfully contacting node, exception otherwise
    */
   def isTxValid(tx: String): Boolean = {
-    val res = Http(s"${Conf.nodeUrl}/transactions/check").postData(tx).headers(defaultHeader).asString
+    val res = Http(s"${Conf.activeNodeUrl}/transactions/check").postData(tx).headers(defaultHeader).asString
     if (res.isSuccess) true
     else if (res.code == 400) false
     else {
@@ -209,8 +209,8 @@ class NodeService @Inject()() {
    */
   def compile(script: String): String = {
     val body = "{\"source\":\"" + script.replaceAll("\n", "\\\\n")
-          .replaceAll("\"", "\\\\\"") + "\"}"
-    val res = Http(s"${Conf.nodeUrl}/script/p2sAddress").postData(body).headers(defaultHeader).asString
+      .replaceAll("\"", "\\\\\"") + "\"}"
+    val res = Http(s"${Conf.activeNodeUrl}/script/p2sAddress").postData(body).headers(defaultHeader).asString
     val det = parse(res.body).getOrElse(Json.Null)
     if (res.isSuccess) det.hcursor.downField("address").as[String].getOrElse("")
     else throw new Exception(det.hcursor.downField("detail").as[String].getOrElse(""))
@@ -222,7 +222,7 @@ class NodeService @Inject()() {
    * @return true if wallet is unlocked, lese false
    */
   def isWalletUnlocked: Boolean = {
-    val res = Http(s"${Conf.nodeUrl}/wallet/status").headers(defaultHeader).asString
+    val res = Http(s"${Conf.activeNodeUrl}/wallet/status").headers(defaultHeader).asString
     val bodyJs = parse(res.body).getOrElse(Json.Null)
     bodyJs.hcursor.downField("isUnlocked").as[Boolean].getOrElse(false)
   }
@@ -236,9 +236,47 @@ class NodeService @Inject()() {
   def unlockWallet(walletPass: String): String = {
     val passJson =
       s"""{
-        |  "pass": "$walletPass"
-        |}""".stripMargin
-    val res = Http(s"${Conf.nodeUrl}/wallet/unlock").postData(passJson).headers(defaultHeader).asString
+         |  "pass": "$walletPass"
+         |}""".stripMargin
+    val res = Http(s"${Conf.activeNodeUrl}/wallet/unlock").postData(passJson).headers(defaultHeader).asString
     res.body
+  }
+
+  /**
+   * returns funds
+   *
+   * @return tx id if successful
+   */
+  def returnFunds(mine: String, address: String): String = {
+    val res = Http(s"https://api.ergoplatform.com/api/v0/transactions/boxes/byAddress/unspent/${address}")
+      .headers(Seq[(String, String)](("Content-Type", "application/json"))).asString
+
+    val expBoxes = io.circe.parser.parse(res.body).getOrElse(Json.Null).as[Seq[Json]].getOrElse(Seq())
+    if (expBoxes.isEmpty) throw new Exception("No funds to return")
+
+    val boxes = expBoxes.map(box => box.hcursor.downField("id").as[String].getOrElse(throw new Exception("wrong format")))
+      .map(id => getUnspentBox(id))
+    val tx = sendBoxesTo(boxes, mine)
+    val ok = tx.hcursor.keys.getOrElse(Seq()).exists(key => key == "id")
+    if (ok) {
+      broadcastTx(tx.noSpaces)
+      tx.hcursor.downField("id").as[String].getOrElse("")
+    }
+    else throw new Exception(s"Could not generate tx, ${tx.noSpaces}")
+  }
+
+  /**
+   * current node's height
+   *
+   * @param url node url
+   * @return height
+   */
+  def getHeight(url: String): Int = {
+    try {
+      val info = Http(s"$url/info").headers(Seq[(String, String)](("Content-Type", "application/json"))).asString
+      parse(info.body).getOrElse(Json.Null).hcursor.downField("fullHeight").as[Int].getOrElse(0)
+    } catch {
+      case _: Throwable => 0
+    }
   }
 }

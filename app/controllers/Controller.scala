@@ -161,7 +161,7 @@ class Controller @Inject()(cc: ControllerComponents, actorSystem: ActorSystem,
         s"""{
           |  "functioning": ${Conf.functioning},
           |  "functioningAdmin": ${Conf.functioningAdmin},
-          |  "activeNode": ${Conf.activeNodeUrl},
+          |  "activeNode": "${Conf.activeNodeUrl}",
           |  "ignoreTime": ${Conf.ignoreTime}
           |}""".stripMargin).as("application/json")
     } catch {

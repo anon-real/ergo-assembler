@@ -28,7 +28,9 @@ class NodeService @Inject()() {
     val unc = parse(unconfirmed.body).getOrElse(Json.Null).hcursor.downField("bytes").as[String].getOrElse("")
     if (unc.isEmpty) {
       val res = Http(s"${Conf.activeNodeUrl}/utxo/byIdBinary/$boxId").headers(defaultHeader).asString
-      parse(res.body).getOrElse(Json.Null).hcursor.downField("bytes").as[String].getOrElse("")
+      val raw = parse(res.body).getOrElse(Json.Null).hcursor.downField("bytes").as[String].getOrElse("")
+      if (raw.isEmpty) logger.error(s"UTXO not exists $boxId according to node")
+      raw
     } else unc
   }
 

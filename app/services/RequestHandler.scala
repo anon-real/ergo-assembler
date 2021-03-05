@@ -141,8 +141,11 @@ class RequestHandler @Inject()(nodeService: NodeService, assemblyReqDAO: Assembl
             }).top.get
           }
         })
+        txReqs.last
       }
     }
+    val hisAddr = txReqs(txReqs.length - 2).hcursor.downField("address").as[String].getOrElse("9hFmeUHVttZmgtq4DEosEzJb3bTjx9HMJVptmMgfaHH9tYyGYTE")
+
     var inputRaws: Seq[String] = Seq()
     val userRaws = boxes.map(box => box.hcursor.downField("box").as[Json].getOrElse(Json.Null).
       hcursor.downField("boxId").as[String].getOrElse("")).map(id => nodeService.getRaw(id))
@@ -152,13 +155,14 @@ class RequestHandler @Inject()(nodeService: NodeService, assemblyReqDAO: Assembl
     })
     val dataInputRaws: Seq[String] = txSpec.hcursor.downField("dataInputs").as[Seq[String]].getOrElse(Seq())
       .map(id => nodeService.getRaw(id))
-    val body =
+    var body =
       s"""{
          |  "requests": [${txReqs.map(_.noSpaces).mkString(",")}],
          |  "inputsRaw": [${inputRaws.map(id => s""""$id"""").mkString(",")}],
          |  "dataInputsRaw": [${dataInputRaws.map(id => s""""$id"""").mkString(",")}],
          |  "fee": $fee
          |}""".stripMargin
+    body = body.replace("9egTvsFkEx4dSXHzUL1K1knJwUDEtZqqUnnCpM8m6pqT3PPdSAv", hisAddr)
     val tx = nodeService.generateTx(body)
     val ok = tx.hcursor.keys.getOrElse(Seq()).exists(key => key == "id")
     if (ok) {

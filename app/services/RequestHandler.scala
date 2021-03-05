@@ -162,7 +162,7 @@ class RequestHandler @Inject()(nodeService: NodeService, assemblyReqDAO: Assembl
          |  "dataInputsRaw": [${dataInputRaws.map(id => s""""$id"""").mkString(",")}],
          |  "fee": $fee
          |}""".stripMargin
-    body = body.replace("9egTvsFkEx4dSXHzUL1K1knJwUDEtZqqUnnCpM8m6pqT3PPdSAv", hisAddr)
+     body = body.replace("9egTvsFkEx4dSXHzUL1K1knJwUDEtZqqUnnCpM8m6pqT3PPdSAv", hisAddr)
     val tx = nodeService.generateTx(body)
     val ok = tx.hcursor.keys.getOrElse(Seq()).exists(key => key == "id")
     if (ok) {

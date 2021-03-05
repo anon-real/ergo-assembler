@@ -35,6 +35,7 @@ class Controller @Inject()(cc: ControllerComponents, actorSystem: ActorSystem,
   def follow: Action[Json] = Action(circe.json).async { implicit request =>
     try {
       if (!Conf.functioning || !Conf.functioningAdmin) throw new Exception("Assembler is not functioning currently")
+      logger.info(request.body.noSpaces)
       val req = Assembly(request.body)
       req.scanId = nodeService.registerScan(req.address)
       val summary = Summary(req)

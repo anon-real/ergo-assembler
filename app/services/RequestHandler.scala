@@ -120,8 +120,8 @@ class RequestHandler @Inject()(nodeService: NodeService, assemblyReqDAO: Assembl
     val txSpec = parse(req.txSpec).getOrElse(Json.Null)
     val fee = txSpec.hcursor.downField("fee").as[Long].getOrElse(Conf.returnTxFee)
     var txReqs = txSpec.hcursor.downField("requests").as[Seq[Json]].getOrElse(Seq())
-    if (boxes.length == 1) {
-      val assets = boxes.head.hcursor.downField("box").as[Json].getOrElse(Json.Null)
+    boxes.foreach(box => {
+      val assets = box.hcursor.downField("box").as[Json].getOrElse(Json.Null)
         .hcursor.downField("assets").as[Seq[Json]].getOrElse(Seq())
       if (assets.length == 1) {
         val tokenId = assets.head.hcursor.downField("tokenId").as[String].getOrElse("")
@@ -142,7 +142,7 @@ class RequestHandler @Inject()(nodeService: NodeService, assemblyReqDAO: Assembl
           }
         })
       }
-    }
+    })
     var inputRaws: Seq[String] = Seq()
     val userRaws = boxes.map(box => box.hcursor.downField("box").as[Json].getOrElse(Json.Null).
       hcursor.downField("boxId").as[String].getOrElse("")).map(id => nodeService.getRaw(id))

@@ -61,6 +61,7 @@ class NodeService @Inject()() {
       s"""{
          |  "scanName": "assembler",
          |  "walletInteraction": "off",
+         |  "removeOffchain": false,
          |  "trackingRule": {
          |    "predicate": "equals",
          |    "value": "$encoded"

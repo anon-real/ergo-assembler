@@ -251,8 +251,12 @@ class NodeService @Inject()() {
    * @return tx id if successful
    */
   def returnFunds(mine: String, address: String): String = {
+    val requestProperties = Map(
+      "User-Agent" -> "Mozilla/4.0 (compatible; MSIE 6.0; Windows NT 5.0)",
+      "Accept"-> "application/json"
+    )
     val res = Http(s"https://api.ergoplatform.com/api/v0/transactions/boxes/byAddress/unspent/${address}")
-      .headers(Seq[(String, String)](("Content-Type", "application/json"))).asString
+      .headers(requestProperties).asString
 
     val expBoxes = io.circe.parser.parse(res.body).getOrElse(Json.Null).as[Seq[Json]].getOrElse(Seq())
     if (expBoxes.isEmpty) throw new Exception("No funds to return")

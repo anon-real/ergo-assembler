@@ -15,6 +15,10 @@ GET        /considerTime/:apiKey         controllers.Controller.considerTime(api
 + nocsrf
 GET        /state                        controllers.Controller.state()
 + nocsrf
+GET        /encodedBox/:bytes            controllers.Controller.encodedBox(bytes: String)
++ nocsrf
+GET        /returnAddr/:tree             controllers.Controller.returnAddr(tree: String)
++ nocsrf
 POST        /compile                     controllers.Controller.compile
 + nocsrf
 GET        /assets/*file                 controllers.Assets.versioned(path="/public", file: Asset)

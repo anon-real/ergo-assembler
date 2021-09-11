@@ -2,33 +2,31 @@ import sbt.Attributed
 
 name := "ergo-assembler"
 
-version := "1.0"
+version := "1.1"
 
 lazy val `distributedsigsclient` = (project in file(".")).enablePlugins(PlayScala)
 
-resolvers += "scalaz-bintray" at "https://dl.bintray.com/scalaz/releases"
+//resolvers += "scalaz-bintray" at "https://dl.bintray.com/scalaz/releases"
+//
+//resolvers += "Akka Snapshot Repository" at "https://repo.akka.io/snapshots/"
 
-resolvers += "Akka Snapshot Repository" at "https://repo.akka.io/snapshots/"
+resolvers ++= Seq("Sonatype Releases" at "https://oss.sonatype.org/content/repositories/releases/",
+  "SonaType" at "https://oss.sonatype.org/content/groups/public",
+  "Sonatype OSS Snapshots" at "https://oss.sonatype.org/content/repositories/snapshots")
 
 scalaVersion := "2.12.2"
 
-val sigmaStateVersion = "3.2.1"
-lazy val sigmaState = ("org.scorexfoundation" %% "sigma-state" % sigmaStateVersion).force()
-  .exclude("ch.qos.logback", "logback-classic")
-  .exclude("org.scorexfoundation", "scrypto")
-  .exclude("org.typelevel", "machinist")
-  .exclude("org.typelevel", "cats-kernel")
-
 libraryDependencies ++= Seq(ehcache, ws, specs2 % Test, guice)
 libraryDependencies ++= Seq(
-  sigmaState,
   "org.scalaj" %% "scalaj-http" % "2.4.2",
   "com.h2database" % "h2" % "1.4.200",
   "com.typesafe.play" %% "play-slick" % "4.0.0",
   "com.typesafe.play" %% "play-slick-evolutions" % "4.0.0",
+  "org.scorexfoundation" %% "scrypto" % "2.1.10",
   "org.scalatestplus.play" %% "scalatestplus-play" % "5.0.0" % Test,
   "com.github.tomakehurst" % "wiremock-standalone" % "2.27.1" % Test
 )
+libraryDependencies += "org.ergoplatform" %% "ergo-appkit" % "5bc5571b-SNAPSHOT"
 
 val circeVersion = "0.12.3"
 libraryDependencies ++= Seq(

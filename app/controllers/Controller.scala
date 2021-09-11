@@ -1,15 +1,22 @@
 package controllers
 
+import scala.collection.JavaConverters._
 import akka.actor.ActorSystem
+import com.google.common.io.BaseEncoding
 import dao.{AssemblyReqDAO, ReqSummaryDAO}
 import io.circe.Json
 import javax.inject._
 import models.{Assembly, Summary}
+import org.ergoplatform.{ErgoAddressEncoder, ErgoBox}
+import org.ergoplatform.appkit.impl.ErgoTreeContract
+import org.ergoplatform.appkit.{Address, ErgoValue, NetworkType, RestApiErgoClient}
 import play.api.Logger
 import play.api.libs.circe.Circe
 import play.api.mvc._
 import scalaj.http.Http
 import services.NodeService
+import sigmastate.serialization.ErgoTreeSerializer
+import special.collection.Coll
 import utils.Conf
 
 import scala.concurrent.{ExecutionContext, Future}
@@ -159,11 +166,69 @@ class Controller @Inject()(cc: ControllerComponents, actorSystem: ActorSystem,
     try {
       Ok(
         s"""{
-          |  "functioning": ${Conf.functioning},
-          |  "functioningAdmin": ${Conf.functioningAdmin},
-          |  "activeNode": "${Conf.activeNodeUrl}",
-          |  "ignoreTime": ${Conf.ignoreTime}
-          |}""".stripMargin).as("application/json")
+           |  "functioning": ${Conf.functioning},
+           |  "functioningAdmin": ${Conf.functioningAdmin},
+           |  "activeNode": "${Conf.activeNodeUrl}",
+           |  "ignoreTime": ${Conf.ignoreTime}
+           |}""".stripMargin).as("application/json")
+    } catch {
+      case e: Exception =>
+        errorResponse(e)
+    }
+  }
+
+  def encodedBox(bytes: String): Action[AnyContent] = Action { implicit request: Request[AnyContent] =>
+    try {
+      val box = ErgoBox.sigmaSerializer.fromBytes(BaseEncoding.base16().decode(bytes))
+      Ok(
+        s"""{
+           |  "encodedBox": "${ErgoValue.of(box).toHex}"
+           |}""".stripMargin).as("application/json")
+    } catch {
+      case e: Exception =>
+        errorResponse(e)
+    }
+  }
+
+  def returnAddr(address: String): Action[AnyContent] = Action { implicit request: Request[AnyContent] =>
+    try {
+      var ret: String = null
+      val conf = RestApiErgoClient.create(Conf.activeNodeUrl + "/", NetworkType.MAINNET, "", null)
+      conf.execute(ctx => {
+        val addrEnc = new ErgoAddressEncoder(NetworkType.MAINNET.networkPrefix)
+        val cur = Address.create(address).getErgoAddress.script
+        val prover = ctx.newProverBuilder()
+          .withDLogSecret(BigInt.apply(0).bigInteger)
+          .build()
+        cur.constants.foreach(c => {
+          if (c.value.isInstanceOf[Coll[Byte]]) {
+            try {
+              val tr = ErgoTreeSerializer.DefaultSerializer.deserializeErgoTree(c.value.asInstanceOf[Coll[Byte]].toArray)
+              val tt = ctx.newTxBuilder()
+              prover.sign(tt.boxesToSpend(Seq(tt.outBoxBuilder()
+                .contract(new ErgoTreeContract(cur))
+                .value(1e8.toLong)
+                .build()
+                .convertToInputWith("f9e5ce5aa0d95f5d54a7bc89c46730d9662397067250aa18a0039631c0f5b809", 0)).asJava)
+                .fee(1e6.toLong)
+                .outputs(tt.outBoxBuilder()
+                  .contract(new ErgoTreeContract(tr))
+                  .value(1e8.toLong - 1e6.toLong)
+                  .build())
+                .sendChangeTo(Address.create("4MQyML64GnzMxZgm").getErgoAddress)
+                .build()).toJson(false)
+              ret = addrEnc.fromProposition(tr).get.toString
+
+            } catch {
+              case e: Exception => println(e.getMessage)
+            }
+          }
+        })
+      })
+      Ok(
+        s"""{
+           |  "returnAddr": "$ret"
+           |}""".stripMargin).as("application/json")
     } catch {
       case e: Exception =>
         errorResponse(e)

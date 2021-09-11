@@ -90,39 +90,44 @@ class RequestHandler @Inject()(nodeService: NodeService, assemblyReqDAO: Assembl
       val tokenId = token.hcursor.downField("tokenId").as[String].getOrElse("")
       changeTokens(tokenId) = changeTokens.getOrElse(tokenId, 0L) + token.hcursor.downField("amount").as[Long].getOrElse(0L)
     }))
-    changeTokens("erg") = boxes.map(box => box.hcursor.downField("box").as[Json].getOrElse(Json.Null)
+    if (boxes.nonEmpty) changeTokens("erg") = boxes.map(box => box.hcursor.downField("box").as[Json].getOrElse(Json.Null)
       .hcursor.downField("value").as[Long].getOrElse(0L)).sum
     val when = parse(req.startWhen).getOrElse(parse("{}").getOrElse(Json.Null))
     val whenKeys = when.hcursor.keys.getOrElse(Seq())
+
     val ok = whenKeys.forall(key => {
-      when.hcursor.downField(key).as[Long].getOrElse(0L) == changeTokens.getOrElse(key, 0L)
+      when.hcursor.downField(key).as[Long].getOrElse(0L) <= changeTokens.getOrElse(key, -1L)
     })
     if (ok) {
       logger.info(s"all ok for ${req.id} - ${req.scanId}, starting...")
-      startTx(req, boxes)
+      startTx(req, boxes, changeTokens)
 
     } else {
       var more = when.hcursor.keys.getOrElse(Seq()).exists(key => {
-        when.hcursor.downField(key).as[Long].getOrElse(0L) < changeTokens.getOrElse(key, 0L)
+        val needed = when.hcursor.downField(key).as[Long].getOrElse(0L)
+        needed > 0 && needed < changeTokens.getOrElse(key, 0L)
       })
       if (!(req.txSpec contains "$userIns.token")) {
         more = more || !changeTokens.forall(tok => whenKeys.toList.contains(tok._1))
       }
 
       if (more) {
-        logger.info(s"more deposit than requested ${req.id} - ${req.scanId}, removing...")
         handleRemoval(req, Stats.returnFailed)
       }
     }
   }
 
-  def startTx(req: AssemblyReq, boxes: Seq[Json]): Unit = {
+  def startTx(req: AssemblyReq, boxes: Seq[Json], boxesVals: mutable.Map[String, Long]): Unit = {
     val txSpec = parse(req.txSpec).getOrElse(Json.Null)
     val fee = txSpec.hcursor.downField("fee").as[Long].getOrElse(Conf.returnTxFee)
     var txReqs = txSpec.hcursor.downField("requests").as[Seq[Json]].getOrElse(Seq())
     boxes.foreach(box => {
       val assets = box.hcursor.downField("box").as[Json].getOrElse(Json.Null)
-        .hcursor.downField("assets").as[Seq[Json]].getOrElse(Seq())
+        .hcursor.downField("assets").as[Seq[Json]].getOrElse(Seq()).filter(curAsset => {
+        txReqs.forall(req => req.hcursor.downField("assets").as[Seq[Json]].getOrElse(Seq()).forall(reqAsset => {
+          reqAsset.hcursor.downField("tokenId").as[String].getOrElse("") != curAsset.hcursor.downField("tokenId").as[String].getOrElse("")
+        }))
+      })
       if (assets.length == 1) {
         val tokenId = assets.head.hcursor.downField("tokenId").as[String].getOrElse("")
         val amount = assets.head.hcursor.downField("amount").as[JsonNumber].getOrElse(null)
@@ -143,6 +148,51 @@ class RequestHandler @Inject()(nodeService: NodeService, assemblyReqDAO: Assembl
         })
       }
     })
+
+    // handling changes
+    txSpec.hcursor.downField("inputs").as[Seq[String]].getOrElse(Seq()).foreach(id => {
+      if (id != "$userIns") {
+        val bx = nodeService.getUnspentBox(id)
+        boxesVals("erg") = boxesVals.getOrElse("erg", 0L) + bx.hcursor.downField("value").as[Long].getOrElse(0L)
+        bx.hcursor.downField("assets").as[Seq[Json]].getOrElse(Seq()).foreach(cAss => {
+          val cAssId = cAss.hcursor.downField("tokenId").as[String].getOrElse("")
+          val cAssAm = cAss.hcursor.downField("amount").as[Long].getOrElse(0L)
+          boxesVals(cAssId) = boxesVals.getOrElse(cAssId, 0L) + cAssAm
+        })
+      }
+    })
+    boxesVals("erg") = boxesVals.getOrElse("erg", 0L) - fee
+    txReqs.foreach(req => {
+      req.hcursor.downField("assets").as[Seq[Json]].getOrElse(Seq()).foreach(cAss => {
+        val cAssId = cAss.hcursor.downField("tokenId").as[String].getOrElse("")
+        val cAssAm = cAss.hcursor.downField("amount").as[Long].getOrElse(0L)
+        if (cAssAm > 0) boxesVals(cAssId) = boxesVals.getOrElse(cAssId, 0L) - cAssAm
+      })
+      if (req.hcursor.downField("value").as[Long].getOrElse(0L) > 0)
+        boxesVals("erg") = boxesVals("erg") - req.hcursor.downField("value").as[Long].getOrElse(0L)
+    })
+    txReqs = txReqs.map(req => {
+      if (req.hcursor.downField("assets").as[Seq[Json]].getOrElse(Seq()).isEmpty) req
+      else req.hcursor.downField("assets").withFocus(assets => {
+        assets.mapArray(lstAssets => {
+          lstAssets.map(asset => {
+            val cAssId = asset.hcursor.downField("tokenId").as[String].getOrElse("")
+            val cAssAm = asset.hcursor.downField("amount").as[Long].getOrElse(0L)
+            if (cAssAm == -1) {
+              asset.hcursor.downField("amount").withFocus(_.mapNumber(_ => JsonNumber.fromString(boxesVals(cAssId).toString).get)).top.get
+            } else asset
+          })
+        })
+      }).top.get
+    })
+    if (boxesVals.getOrElse("erg", 0L) > 0) {
+      txReqs = txReqs.map(req => {
+        if (req.hcursor.downField("value").as[Long].getOrElse(0L) != -1) req
+        else {
+          req.hcursor.downField("value").withFocus(_.mapNumber(_ => JsonNumber.fromString(boxesVals("erg").toString).get)).top.get
+        }
+      })
+    }
     var inputRaws: Seq[String] = Seq()
     val userRaws = boxes.map(box => box.hcursor.downField("box").as[Json].getOrElse(Json.Null).
       hcursor.downField("boxId").as[String].getOrElse("")).map(id => nodeService.getRaw(id))

@@ -5,6 +5,7 @@ import akka.actor.ActorSystem
 import com.google.common.io.BaseEncoding
 import dao.{AssemblyReqDAO, ReqSummaryDAO}
 import io.circe.Json
+import io.circe.syntax._
 import javax.inject._
 import models.{Assembly, Summary}
 import org.ergoplatform.{ErgoAddressEncoder, ErgoBox}
@@ -107,7 +108,7 @@ class Controller @Inject()(cc: ControllerComponents, actorSystem: ActorSystem,
 
   def returnTx(mine: String, address: String): Action[AnyContent] = Action { implicit request: Request[AnyContent] =>
     try {
-      Ok(nodeService.returnFunds(mine, address)).as("application/json")
+      Ok(nodeService.returnFunds(mine, address).asJson).as("application/json")
     } catch {
       case e: Exception =>
         errorResponse(e)

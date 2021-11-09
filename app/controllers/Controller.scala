@@ -107,7 +107,10 @@ class Controller @Inject()(cc: ControllerComponents, actorSystem: ActorSystem,
 
   def returnTx(mine: String, address: String): Action[AnyContent] = Action { implicit request: Request[AnyContent] =>
     try {
-      Ok(nodeService.returnFunds(mine, address)).as("application/json")
+      Ok(
+        s"""{
+           |  "txId": "${nodeService.returnFunds(mine, address)}"
+           |}""".stripMargin).as("application/json")
     } catch {
       case e: Exception =>
         errorResponse(e)

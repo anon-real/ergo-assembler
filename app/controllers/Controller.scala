@@ -15,6 +15,7 @@ import play.api.libs.circe.Circe
 import play.api.mvc._
 import scalaj.http.Http
 import services.NodeService
+import sigmastate.Values.ErgoTree
 import sigmastate.serialization.ErgoTreeSerializer
 import special.collection.Coll
 import utils.Conf
@@ -206,7 +207,15 @@ class Controller @Inject()(cc: ControllerComponents, actorSystem: ActorSystem,
         cur.constants.foreach(c => {
           if (c.value.isInstanceOf[Coll[Byte]]) {
             try {
-              val tr = ErgoTreeSerializer.DefaultSerializer.deserializeErgoTree(c.value.asInstanceOf[Coll[Byte]].toArray)
+              var tr: ErgoTree = null
+              try {
+                tr = ErgoTreeSerializer.DefaultSerializer.deserializeErgoTree(c.value.asInstanceOf[Coll[Byte]].toArray)
+              }
+              catch {
+                case e: OutOfMemoryError => println(s"OutOfMemoryError ${e.getMessage}")
+              }
+
+
               val tt = ctx.newTxBuilder()
               prover.sign(tt.boxesToSpend(Seq(tt.outBoxBuilder()
                 .contract(new ErgoTreeContract(cur))

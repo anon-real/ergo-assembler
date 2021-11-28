@@ -199,6 +199,7 @@ class Controller @Inject()(cc: ControllerComponents, actorSystem: ActorSystem,
       var ret: String = null
       val conf = RestApiErgoClient.create(Conf.activeNodeUrl + "/", NetworkType.MAINNET, "", null)
       conf.execute(ctx => {
+        try {
         val addrEnc = new ErgoAddressEncoder(NetworkType.MAINNET.networkPrefix)
         val cur = Address.create(address).getErgoAddress.script
         val prover = ctx.newProverBuilder()
@@ -236,6 +237,9 @@ class Controller @Inject()(cc: ControllerComponents, actorSystem: ActorSystem,
             }
           }
         })
+        } catch {
+                          case e: OutOfMemoryError => println(s"OutOfMemoryError ${e.getMessage}")
+        }
       })
       Ok(
         s"""{

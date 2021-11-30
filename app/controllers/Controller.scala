@@ -18,6 +18,7 @@ import services.NodeService
 import sigmastate.Values.ErgoTree
 import sigmastate.serialization.ErgoTreeSerializer
 import special.collection.Coll
+import special.sigma.SigmaProp
 import utils.Conf
 
 import scala.concurrent.{ExecutionContext, Future}
@@ -199,47 +200,44 @@ class Controller @Inject()(cc: ControllerComponents, actorSystem: ActorSystem,
       var ret: String = null
       val conf = RestApiErgoClient.create(Conf.activeNodeUrl + "/", NetworkType.MAINNET, "", null)
       conf.execute(ctx => {
-        try {
         val addrEnc = new ErgoAddressEncoder(NetworkType.MAINNET.networkPrefix)
         val cur = Address.create(address).getErgoAddress.script
         val prover = ctx.newProverBuilder()
           .withDLogSecret(BigInt.apply(0).bigInteger)
           .build()
         cur.constants.foreach(c => {
-          if (c.value.isInstanceOf[Coll[Byte]]) {
-            try {
-              var tr: ErgoTree = null
-              try {
-                tr = ErgoTreeSerializer.DefaultSerializer.deserializeErgoTree(c.value.asInstanceOf[Coll[Byte]].toArray)
-              }
-              catch {
-                case e: OutOfMemoryError => println(s"OutOfMemoryError ${e.getMessage}")
-              }
-
-
-              val tt = ctx.newTxBuilder()
-              prover.sign(tt.boxesToSpend(Seq(tt.outBoxBuilder()
-                .contract(new ErgoTreeContract(cur))
-                .value(1e8.toLong)
-                .build()
-                .convertToInputWith("f9e5ce5aa0d95f5d54a7bc89c46730d9662397067250aa18a0039631c0f5b809", 0)).asJava)
-                .fee(1e6.toLong)
-                .outputs(tt.outBoxBuilder()
-                  .contract(new ErgoTreeContract(tr))
-                  .value(1e8.toLong - 1e6.toLong)
-                  .build())
-                .sendChangeTo(Address.create("4MQyML64GnzMxZgm").getErgoAddress)
-                .build()).toJson(false)
-              ret = addrEnc.fromProposition(tr).get.toString
-
-            } catch {
-              case e: Exception => println(e.getMessage)
+          var tr: ErgoTree = null
+          try {
+            if (c.value.isInstanceOf[Coll[Byte]]) {
+              tr = ErgoTreeSerializer.DefaultSerializer.deserializeErgoTree(c.value.asInstanceOf[Coll[Byte]].toArray)
+            } else if (c.opType.toString().contains("SigmaProp")) {
+              tr = ErgoTreeSerializer.DefaultSerializer.deserializeErgoTree(c.value.asInstanceOf[SigmaProp].propBytes.toArray)
             }
           }
+          catch {
+            case e: OutOfMemoryError => println(s"OutOfMemoryError ${e.getMessage}")
+            case e: Exception => println(e.getMessage)
+          }
+          try {
+            val tt = ctx.newTxBuilder()
+            prover.sign(tt.boxesToSpend(Seq(tt.outBoxBuilder()
+              .contract(new ErgoTreeContract(cur))
+              .value(1e8.toLong)
+              .build()
+              .convertToInputWith("f9e5ce5aa0d95f5d54a7bc89c46730d9662397067250aa18a0039631c0f5b809", 0)).asJava)
+              .fee(1e6.toLong)
+              .outputs(tt.outBoxBuilder()
+                .contract(new ErgoTreeContract(tr))
+                .value(1e8.toLong - 1e6.toLong)
+                .build())
+              .sendChangeTo(Address.create("4MQyML64GnzMxZgm").getErgoAddress)
+              .build()).toJson(false)
+            ret = addrEnc.fromProposition(tr).get.toString
+
+          } catch {
+            case e: Exception => println(e.getMessage)
+          }
         })
-        } catch {
-                          case e: OutOfMemoryError => println(s"OutOfMemoryError ${e.getMessage}")
-        }
       })
       Ok(
         s"""{

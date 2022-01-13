@@ -15,7 +15,7 @@ import scala.collection.mutable
 @Singleton
 class NodeService @Inject()() {
   private val logger: Logger = Logger(this.getClass)
-  private val defaultHeader: Seq[(String, String)] = Seq[(String, String)](("Content-Type", "application/json"), ("api_key", Conf.activeNodeApi))
+  var defaultHeader: Seq[(String, String)] = Seq[(String, String)](("Content-Type", "application/json"), ("api_key", Conf.activeNodeApi))
 
   /**
    * gets box as raw, whether box is confirmed or unconfirmed

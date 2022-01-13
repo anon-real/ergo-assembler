@@ -35,6 +35,7 @@ class Jobs(summaryHandler: SummaryHandler, requestHandler: RequestHandler, resul
           Conf.activeNodeUrl = url._1
           Conf.activeNodeApi = Conf.availableNodeApis(url._2)
           Conf.activeNodeWallet = Conf.availableNodeWallets(url._2)
+          nodeService.defaultHeader = Seq[(String, String)](("Content-Type", "application/json"), ("api_key", Conf.activeNodeApi))
           Conf.functioning = true
           logger.info(s"Found a good node to switch to ${url._1}, started functioning")
         }

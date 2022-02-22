@@ -248,4 +248,16 @@ class Controller @Inject()(cc: ControllerComponents, actorSystem: ActorSystem,
         errorResponse(e)
     }
   }
+
+  def walletAddress: Action[AnyContent] = Action { implicit request: Request[AnyContent] =>
+    try {
+      if (!Conf.functioning || !Conf.functioningAdmin) throw new Exception("Assembler is not functioning currently")
+      Ok(
+        s"""{
+           |  "address": "${nodeService.getWalletAddress}"
+           |}""".stripMargin).as("application/json")
+    } catch {
+      case e: Exception => errorResponse(e)
+    }
+  }
 }

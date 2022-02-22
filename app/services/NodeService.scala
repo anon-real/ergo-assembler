@@ -286,4 +286,16 @@ class NodeService @Inject()() {
       case _: Throwable => 0
     }
   }
+
+  /**
+   * gets one of the wallet addresses of the node
+   *
+   * @return wallet address
+   */
+  def getWalletAddress: String = {
+    val res = Http(s"${Conf.activeNodeUrl}/wallet/addresses").headers(defaultHeader).asString
+    val bodyJs = parse(res.body).getOrElse(Json.Null)
+    bodyJs.as[Seq[String]]
+      .getOrElse(Seq("none")).head
+  }
 }

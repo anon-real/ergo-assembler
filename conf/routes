@@ -24,3 +24,5 @@ POST        /compile                     controllers.Controller.compile
 GET        /assets/*file                 controllers.Assets.versioned(path="/public", file: Asset)
 + nocsrf
 GET        /wallet                      controllers.Controller.walletAddress
++ nocsrf
+GET        /getScanAddress/:address            controllers.Controller.getScanAddress(address: String)

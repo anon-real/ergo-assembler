@@ -47,6 +47,12 @@ class NodeService @Inject()() {
       .getOrElse(throw new Exception(bodyJs.hcursor.downField("detail").as[String].getOrElse("")))
   }
 
+  def getScanAddress(address: String): String = {
+    val bs = Base16.decode(addressToRaw(address)).get
+    val bac = ByteArrayConstant(bs)
+    Base16.encode(ValueSerializer.serialize(bac))
+  }
+
   /**
    * registers a scan in node to follow unspent boxes
    *
@@ -201,6 +207,7 @@ class NodeService @Inject()() {
          |  "inputsRaw": [${ids.map(id => s""""${getRaw(id)}"""").mkString(",")}]
          |}""".stripMargin
 
+    println(request)
     generateTx(request)
   }
 

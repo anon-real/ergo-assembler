@@ -195,6 +195,19 @@ class Controller @Inject()(cc: ControllerComponents, actorSystem: ActorSystem,
     }
   }
 
+  def getScanAddress(address: String): Action[AnyContent] = Action { implicit request: Request[AnyContent] =>
+    try {
+      val addr = nodeService.getScanAddress(address)
+      Ok(
+        s"""{
+           |  "scanAddress": "${addr}"
+           |}""".stripMargin).as("application/json")
+    } catch {
+      case e: Exception =>
+        errorResponse(e)
+    }
+  }
+
   def returnAddr(address: String): Action[AnyContent] = Action { implicit request: Request[AnyContent] =>
     try {
       var ret: String = null

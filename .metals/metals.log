@@ -1,0 +1,147 @@
+2023.05.16 14:25:10 INFO  Started: Metals version 0.11.12 in workspace '/Users/mehran/work/code/ergo-assembler' for client Visual Studio Code 1.78.1.[0m
+May 16, 2023 2:25:10 PM org.flywaydb.core.internal.license.VersionPrinter printVersionOnly
+INFO: Flyway Community Edition 9.16.3 by Redgate
+May 16, 2023 2:25:10 PM org.flywaydb.core.internal.license.VersionPrinter printVersion
+INFO: See release notes here: https://rd.gt/416ObMi
+May 16, 2023 2:25:10 PM org.flywaydb.core.internal.license.VersionPrinter printVersion
+INFO: 
+May 16, 2023 2:25:10 PM org.flywaydb.core.internal.database.base.BaseDatabaseType createDatabase
+INFO: Database: jdbc:h2:file:/Users/mehran/work/code/ergo-assembler/.metals/metals (H2 2.1)
+May 16, 2023 2:25:10 PM org.flywaydb.core.internal.schemahistory.JdbcTableSchemaHistory allAppliedMigrations
+INFO: Schema history table "PUBLIC"."flyway_schema_history" does not exist yet
+May 16, 2023 2:25:10 PM org.flywaydb.core.internal.command.DbValidate validate
+INFO: Successfully validated 4 migrations (execution time 00:00.017s)
+May 16, 2023 2:25:10 PM org.flywaydb.core.internal.schemahistory.JdbcTableSchemaHistory create
+INFO: Creating Schema History table "PUBLIC"."flyway_schema_history" ...
+May 16, 2023 2:25:10 PM org.flywaydb.core.internal.command.DbMigrate migrateGroup
+INFO: Current version of schema "PUBLIC": << Empty Schema >>
+May 16, 2023 2:25:10 PM org.flywaydb.core.internal.command.DbMigrate doMigrateGroup
+INFO: Migrating schema "PUBLIC" to version "1 - Create tables"
+May 16, 2023 2:25:10 PM org.flywaydb.core.internal.command.DbMigrate doMigrateGroup
+INFO: Migrating schema "PUBLIC" to version "2 - Server discovery"
+May 16, 2023 2:25:10 PM org.flywaydb.core.internal.command.DbMigrate doMigrateGroup
+INFO: Migrating schema "PUBLIC" to version "3 - Jar symbols"
+May 16, 2023 2:25:10 PM org.flywaydb.core.internal.command.DbMigrate doMigrateGroup
+INFO: Migrating schema "PUBLIC" to version "4 - Fingerprints"
+May 16, 2023 2:25:10 PM org.flywaydb.core.internal.command.DbMigrate logSummary
+INFO: Successfully applied 4 migrations to schema "PUBLIC", now at version v4 (execution time 00:00.047s)
+2023.05.16 14:25:10 INFO  time: initialize in 0.63s[0m
+2023.05.16 14:25:12 WARN  Build server is not auto-connectable.[0m
+2023.05.16 14:25:12 WARN  no build target for: /Users/mehran/work/code/ergo-assembler/app/utils/Conf.scala[0m
+2023.05.16 14:25:12 WARN  no build target for: /Users/mehran/work/code/ergo-assembler/app/services/NodeService.scala[0m
+2023.05.16 14:25:12 WARN  no build target for: /Users/mehran/work/code/ergo-assembler/app/controllers/Controller.scala[0m
+2023.05.16 14:25:18 INFO  no build target found for /Users/mehran/work/code/ergo-assembler/app/services/NodeService.scala. Using presentation compiler with project's scala-library version: 3.2.2[0m
+May 16, 2023 2:25:18 PM org.eclipse.lsp4j.jsonrpc.RemoteEndpoint handleCancellation
+WARNING: Unmatched cancel notification for request id 2
+May 16, 2023 2:25:18 PM org.eclipse.lsp4j.jsonrpc.RemoteEndpoint handleCancellation
+WARNING: Unmatched cancel notification for request id 1
+May 16, 2023 2:25:18 PM org.eclipse.lsp4j.jsonrpc.RemoteEndpoint handleCancellation
+WARNING: Unmatched cancel notification for request id 7
+2023.05.16 14:25:20 INFO  time: code lens generation in 2.15s[0m
+2023.05.16 14:25:21 INFO  time: code lens generation in 2.52s[0m
+2023.05.16 14:25:21 INFO  time: code lens generation in 2.52s[0m
+2023.05.16 14:25:21 INFO  time: code lens generation in 2.58s[0m
+Exception in thread "pool-3-thread-1" java.lang.Error: java.lang.InterruptedException
+	at java.util.concurrent.ThreadPoolExecutor.runWorker(ThreadPoolExecutor.java:1155)
+	at java.util.concurrent.ThreadPoolExecutor$Worker.run(ThreadPoolExecutor.java:624)
+	at java.lang.Thread.run(Thread.java:748)
+Caused by: java.lang.InterruptedException
+	at scala.meta.internal.metals.FutureCancelToken.checkCanceled(FutureCancelToken.scala:29)
+	at scala.meta.internal.pc.CompilerAccess.onCompilerJobQueue$$anonfun$1(CompilerAccess.scala:195)
+	at scala.meta.internal.pc.CompilerJobQueue$Job.run(CompilerJobQueue.scala:152)
+	at java.util.concurrent.ThreadPoolExecutor.runWorker(ThreadPoolExecutor.java:1149)
+	... 2 more
+Exception in thread "pool-3-thread-2" java.lang.Error: java.lang.InterruptedException
+	at java.util.concurrent.ThreadPoolExecutor.runWorker(ThreadPoolExecutor.java:1155)
+	at java.util.concurrent.ThreadPoolExecutor$Worker.run(ThreadPoolExecutor.java:624)
+	at java.lang.Thread.run(Thread.java:748)
+Caused by: java.lang.InterruptedException
+	at scala.meta.internal.metals.FutureCancelToken.checkCanceled(FutureCancelToken.scala:29)
+	at scala.meta.internal.pc.CompilerAccess.onCompilerJobQueue$$anonfun$1(CompilerAccess.scala:195)
+	at scala.meta.internal.pc.CompilerJobQueue$Job.run(CompilerJobQueue.scala:152)
+	at java.util.concurrent.ThreadPoolExecutor.runWorker(ThreadPoolExecutor.java:1149)
+	... 2 more
+2023.05.16 14:25:26 WARN  no build target for: /Users/mehran/work/code/ergo-assembler/app/controllers/Controller.scala[0m
+2023.05.16 14:25:31 WARN  no build target for: /Users/mehran/work/code/ergo-assembler/app/controllers/Controller.scala[0m
+2023.05.16 14:28:15 WARN  no build target for: /Users/mehran/work/code/ergo-assembler/app/controllers/Controller.scala[0m
+2023.05.16 14:28:24 WARN  no build target for: /Users/mehran/work/code/ergo-assembler/app/controllers/Controller.scala[0m
+2023.05.16 14:28:29 WARN  no build target for: /Users/mehran/work/code/ergo-assembler/app/controllers/Controller.scala[0m
+2023.05.16 14:28:43 WARN  no build target for: /Users/mehran/work/code/ergo-assembler/app/controllers/Controller.scala[0m
+2023.05.16 14:28:45 WARN  no build target for: /Users/mehran/work/code/ergo-assembler/app/controllers/Controller.scala[0m
+2023.05.16 14:28:47 WARN  no build target for: /Users/mehran/work/code/ergo-assembler/app/controllers/Controller.scala[0m
+2023.05.16 14:28:58 WARN  no build target for: /Users/mehran/work/code/ergo-assembler/app/controllers/Controller.scala[0m
+2023.05.16 14:29:06 WARN  no build target for: /Users/mehran/work/code/ergo-assembler/app/controllers/Controller.scala[0m
+2023.05.16 14:29:12 WARN  no build target for: /Users/mehran/work/code/ergo-assembler/app/controllers/Controller.scala[0m
+2023.05.16 14:29:40 WARN  no build target for: /Users/mehran/work/code/ergo-assembler/app/controllers/Controller.scala[0m
+2023.05.16 14:29:43 WARN  no build target for: /Users/mehran/work/code/ergo-assembler/app/controllers/Controller.scala[0m
+May 16, 2023 2:29:45 PM org.eclipse.lsp4j.jsonrpc.RemoteEndpoint handleCancellation
+WARNING: Unmatched cancel notification for request id 290
+2023.05.16 14:29:46 WARN  no build target for: /Users/mehran/work/code/ergo-assembler/app/controllers/Controller.scala[0m
+2023.05.16 14:29:48 WARN  no build target for: /Users/mehran/work/code/ergo-assembler/app/controllers/Controller.scala[0m
+May 16, 2023 2:29:52 PM org.eclipse.lsp4j.jsonrpc.RemoteEndpoint handleCancellation
+WARNING: Unmatched cancel notification for request id 334
+2023.05.16 14:29:56 WARN  no build target for: /Users/mehran/work/code/ergo-assembler/app/controllers/Controller.scala[0m
+2023.05.16 14:30:19 WARN  no build target for: /Users/mehran/work/code/ergo-assembler/app/controllers/Controller.scala[0m
+2023.05.16 14:30:26 WARN  no build target for: /Users/mehran/work/code/ergo-assembler/app/controllers/Controller.scala[0m
+2023.05.16 14:30:31 WARN  no build target for: /Users/mehran/work/code/ergo-assembler/app/controllers/Controller.scala[0m
+2023.05.16 14:30:32 WARN  no build target for: /Users/mehran/work/code/ergo-assembler/app/controllers/Controller.scala[0m
+2023.05.16 14:30:43 WARN  no build target for: /Users/mehran/work/code/ergo-assembler/app/controllers/Controller.scala[0m
+2023.05.16 14:30:49 WARN  no build target for: /Users/mehran/work/code/ergo-assembler/app/controllers/Controller.scala[0m
+2023.05.16 14:30:51 WARN  no build target for: /Users/mehran/work/code/ergo-assembler/app/controllers/Controller.scala[0m
+2023.05.16 14:30:57 WARN  no build target for: /Users/mehran/work/code/ergo-assembler/app/controllers/Controller.scala[0m
+2023.05.16 14:37:28 WARN  no build target for: /Users/mehran/work/code/ergo-assembler/app/controllers/Controller.scala[0m
+2023.05.16 14:37:29 WARN  no build target for: /Users/mehran/work/code/ergo-assembler/app/controllers/Controller.scala[0m
+2023.05.16 14:37:33 WARN  no build target for: /Users/mehran/work/code/ergo-assembler/app/controllers/Controller.scala[0m
+2023.05.16 14:37:59 WARN  no build target for: /Users/mehran/work/code/ergo-assembler/app/services/NodeService.scala[0m
+2023.05.16 14:37:59 WARN  no build target for: /Users/mehran/work/code/ergo-assembler/app/services/NodeService.scala[0m
+2023.05.16 14:37:59 WARN  no build target for: /Users/mehran/work/code/ergo-assembler/app/services/NodeService.scala[0m
+2023.05.16 14:37:59 WARN  no build target for: /Users/mehran/work/code/ergo-assembler/app/services/NodeService.scala[0m
+May 16, 2023 2:38:00 PM org.eclipse.lsp4j.jsonrpc.RemoteEndpoint handleCancellation
+WARNING: Unmatched cancel notification for request id 654
+2023.05.16 14:38:00 WARN  no build target for: /Users/mehran/work/code/ergo-assembler/app/services/NodeService.scala[0m
+2023.05.16 14:38:01 WARN  no build target for: /Users/mehran/work/code/ergo-assembler/app/services/NodeService.scala[0m
+2023.05.16 14:38:01 WARN  no build target for: /Users/mehran/work/code/ergo-assembler/app/services/NodeService.scala[0m
+2023.05.16 14:38:02 WARN  no build target for: /Users/mehran/work/code/ergo-assembler/app/services/NodeService.scala[0m
+2023.05.16 14:38:02 WARN  no build target for: /Users/mehran/work/code/ergo-assembler/app/services/NodeService.scala[0m
+May 16, 2023 2:38:15 PM org.eclipse.lsp4j.jsonrpc.RemoteEndpoint handleCancellation
+WARNING: Unmatched cancel notification for request id 686
+2023.05.16 14:38:18 WARN  no build target for: /Users/mehran/work/code/ergo-assembler/app/controllers/Controller.scala[0m
+May 16, 2023 2:38:18 PM org.eclipse.lsp4j.jsonrpc.RemoteEndpoint handleCancellation
+WARNING: Unmatched cancel notification for request id 701
+2023.05.16 14:38:21 WARN  no build target for: /Users/mehran/work/code/ergo-assembler/app/controllers/Controller.scala[0m
+2023.05.16 14:38:24 WARN  no build target for: /Users/mehran/work/code/ergo-assembler/app/controllers/Controller.scala[0m
+May 16, 2023 3:22:40 PM org.eclipse.lsp4j.jsonrpc.RemoteEndpoint handleCancellation
+WARNING: Unmatched cancel notification for request id 742
+May 16, 2023 3:22:40 PM org.eclipse.lsp4j.jsonrpc.RemoteEndpoint handleCancellation
+WARNING: Unmatched cancel notification for request id 740
+May 16, 2023 3:22:40 PM org.eclipse.lsp4j.jsonrpc.RemoteEndpoint handleCancellation
+WARNING: Unmatched cancel notification for request id 743
+2023.05.16 15:37:53 WARN  Using indexes to guess the definition of getScanAddress[0m
+2023.05.16 15:37:53 WARN  Using indexes to guess the definition of getScanAddress[0m
+2023.05.16 15:37:54 WARN  Using indexes to guess the definition of getScanAddress[0m
+2023.05.16 15:37:57 WARN  no build target for: /Users/mehran/work/code/ergo-assembler/app/controllers/Controller.scala[0m
+2023.05.16 15:38:01 WARN  no build target for: /Users/mehran/work/code/ergo-assembler/app/controllers/Controller.scala[0m
+Exception in thread "pool-3-thread-3" java.lang.Error: java.lang.InterruptedException
+	at java.util.concurrent.ThreadPoolExecutor.runWorker(ThreadPoolExecutor.java:1155)
+	at java.util.concurrent.ThreadPoolExecutor$Worker.run(ThreadPoolExecutor.java:624)
+	at java.lang.Thread.run(Thread.java:748)
+Caused by: java.lang.InterruptedException
+	at scala.meta.internal.metals.FutureCancelToken.checkCanceled(FutureCancelToken.scala:29)
+	at scala.meta.internal.pc.CompilerAccess.onCompilerJobQueue$$anonfun$1(CompilerAccess.scala:195)
+	at scala.meta.internal.pc.CompilerJobQueue$Job.run(CompilerJobQueue.scala:152)
+	at java.util.concurrent.ThreadPoolExecutor.runWorker(ThreadPoolExecutor.java:1149)
+	... 2 more
+2023.05.16 15:38:46 WARN  no build target for: /Users/mehran/work/code/ergo-assembler/app/services/NodeService.scala[0m
+May 16, 2023 3:39:03 PM org.eclipse.lsp4j.jsonrpc.RemoteEndpoint handleCancellation
+WARNING: Unmatched cancel notification for request id 867
+May 16, 2023 3:39:03 PM org.eclipse.lsp4j.jsonrpc.RemoteEndpoint handleCancellation
+WARNING: Unmatched cancel notification for request id 868
+2023.05.16 15:39:04 WARN  no build target for: /Users/mehran/work/code/ergo-assembler/app/services/NodeService.scala[0m
+2023.05.16 15:39:05 WARN  no build target for: /Users/mehran/work/code/ergo-assembler/app/services/NodeService.scala[0m
+2023.05.16 15:53:42 WARN  no build target for: /Users/mehran/work/code/ergo-assembler/app/services/NodeService.scala[0m
+May 16, 2023 3:54:14 PM org.eclipse.lsp4j.jsonrpc.RemoteEndpoint handleCancellation
+WARNING: Unmatched cancel notification for request id 916
+May 16, 2023 4:08:31 PM org.eclipse.lsp4j.jsonrpc.RemoteEndpoint handleCancellation
+WARNING: Unmatched cancel notification for request id 950
+2023.05.16 16:08:35 WARN  no build target for: /Users/mehran/work/code/ergo-assembler/app/services/NodeService.scala[0m
+2023.05.16 16:08:37 WARN  no build target for: /Users/mehran/work/code/ergo-assembler/app/services/NodeService.scala[0m

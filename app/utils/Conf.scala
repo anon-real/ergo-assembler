@@ -32,6 +32,9 @@ object Conf {
   lazy val followTxForConf: Long = readKey("followTxForConf").toInt
   lazy val followTxInterval: Long = readKey("followTxInterval").toInt
 
+  lazy val oracleScanId: Int = readKey("oracleScanId").toInt
+  lazy val bankScanId: Int = readKey("bankScanId").toInt
+
   lazy val removeSummaryInterval: Long = readKey("removeSummaryInterval").toInt
   lazy val keepSummaryFor: Long = readKey("keepSummaryFor").toInt
 

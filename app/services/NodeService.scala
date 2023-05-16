@@ -116,6 +116,7 @@ class NodeService @Inject()() {
     val bodyJs = parse(res.body).getOrElse(Json.Null)
     bodyJs.as[List[Json]]
       .getOrElse(throw new Exception(bodyJs.hcursor.downField("detail").as[String].getOrElse("")))
+
   }
 
   /**
@@ -272,6 +273,7 @@ class NodeService @Inject()() {
       .map(id => getUnspentBox(id))
     val tx = sendBoxesTo(boxes, mine)
     val ok = tx.hcursor.keys.getOrElse(Seq()).exists(key => key == "id")
+    println(tx.noSpaces)
     if (ok) {
       broadcastTx(tx.noSpaces)
       tx.hcursor.downField("id").as[String].getOrElse("")

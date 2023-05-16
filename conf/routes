@@ -26,3 +26,11 @@ GET        /assets/*file                 controllers.Assets.versioned(path="/pub
 GET        /wallet                      controllers.Controller.walletAddress
 + nocsrf
 GET        /getScanAddress/:address            controllers.Controller.getScanAddress(address: String)
+
++ nocsrf
+GET        /getBankBox            controllers.Controller.getBankBox()
++ nocsrf
+GET        /getOracleBox            controllers.Controller.getOracleBox()
+
++ nocsrf
+GET        /getHeight            controllers.Controller.getHeight()

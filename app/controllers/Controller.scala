@@ -273,4 +273,37 @@ class Controller @Inject()(cc: ControllerComponents, actorSystem: ActorSystem,
       case e: Exception => errorResponse(e)
     }
   }
+
+  def getBankBox: Action[AnyContent] = Action { implicit request: Request[AnyContent] =>
+    try {
+      if (!Conf.functioning || !Conf.functioningAdmin) throw new Exception("Assembler is not functioning currently")
+      val bank = nodeService.unspentBoxesFor(Conf.bankScanId).head.hcursor.downField("box").as[Json].getOrElse(Json.Null)
+      Ok(bank).as("application/json")
+    } catch {
+      case e: Exception => errorResponse(e)
+    }
+  }
+
+  def getOracleBox: Action[AnyContent] = Action { implicit request: Request[AnyContent] =>
+    try {
+      if (!Conf.functioning || !Conf.functioningAdmin) throw new Exception("Assembler is not functioning currently")
+      val oracle = nodeService.unspentBoxesFor(Conf.oracleScanId).head.hcursor.downField("box").as[Json].getOrElse(Json.Null)
+      Ok(oracle).as("application/json")
+    } catch {
+      case e: Exception => errorResponse(e)
+    }
+  }
+
+  def getHeight: Action[AnyContent] = Action { implicit request: Request[AnyContent] =>
+    try {
+      if (!Conf.functioning || !Conf.functioningAdmin) throw new Exception("Assembler is not functioning currently")
+      val height = nodeService.getHeight(Conf.activeNodeUrl)
+      Ok(
+        s"""{
+           |  "height": $height
+           |}""".stripMargin).as("application/json")
+    } catch {
+      case e: Exception => errorResponse(e)
+    }
+  }
 }

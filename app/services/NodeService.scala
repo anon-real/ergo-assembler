@@ -111,8 +111,8 @@ class NodeService @Inject()() {
    * @param scanId scan id
    * @return list of boxes as json
    */
-  def unspentBoxesFor(scanId: Int): List[Json] = {
-    val res = Http(s"${Conf.activeNodeUrl}/scan/unspentBoxes/$scanId?minConfirmations=-1").headers(defaultHeader).asString
+  def unspentBoxesFor(scanId: Int, minConf: Int = -1): List[Json] = {
+    val res = Http(s"${Conf.activeNodeUrl}/scan/unspentBoxes/$scanId?minConfirmations=${minConf}").headers(defaultHeader).asString
     val bodyJs = parse(res.body).getOrElse(Json.Null)
     bodyJs.as[List[Json]]
       .getOrElse(throw new Exception(bodyJs.hcursor.downField("detail").as[String].getOrElse("")))

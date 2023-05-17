@@ -277,7 +277,7 @@ class Controller @Inject()(cc: ControllerComponents, actorSystem: ActorSystem,
   def getBankBox: Action[AnyContent] = Action { implicit request: Request[AnyContent] =>
     try {
       if (!Conf.functioning || !Conf.functioningAdmin) throw new Exception("Assembler is not functioning currently")
-      val bank = nodeService.unspentBoxesFor(Conf.bankScanId).head.hcursor.downField("box").as[Json].getOrElse(Json.Null)
+      val bank = nodeService.unspentBoxesFor(Conf.bankScanId, 0).head.hcursor.downField("box").as[Json].getOrElse(Json.Null)
       Ok(bank).as("application/json")
     } catch {
       case e: Exception => errorResponse(e)
@@ -287,7 +287,7 @@ class Controller @Inject()(cc: ControllerComponents, actorSystem: ActorSystem,
   def getOracleBox: Action[AnyContent] = Action { implicit request: Request[AnyContent] =>
     try {
       if (!Conf.functioning || !Conf.functioningAdmin) throw new Exception("Assembler is not functioning currently")
-      val oracle = nodeService.unspentBoxesFor(Conf.oracleScanId).head.hcursor.downField("box").as[Json].getOrElse(Json.Null)
+      val oracle = nodeService.unspentBoxesFor(Conf.oracleScanId, 0).head.hcursor.downField("box").as[Json].getOrElse(Json.Null)
       Ok(oracle).as("application/json")
     } catch {
       case e: Exception => errorResponse(e)

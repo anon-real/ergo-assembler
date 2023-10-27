@@ -277,8 +277,19 @@ class Controller @Inject()(cc: ControllerComponents, actorSystem: ActorSystem,
   def getBankBox: Action[AnyContent] = Action { implicit request: Request[AnyContent] =>
     try {
       if (!Conf.functioning || !Conf.functioningAdmin) throw new Exception("Assembler is not functioning currently")
-      val bank = nodeService.unspentBoxesFor(Conf.bankScanId, 0).head.hcursor.downField("box").as[Json].getOrElse(Json.Null)
+      // val bank = nodeService.unspentBoxesFor(Conf.bankScanId, 0).head.hcursor.downField("box").as[Json].getOrElse(Json.Null)
+      val bank = nodeService.chainedBank()
       Ok(bank).as("application/json")
+    } catch {
+      case e: Exception => errorResponse(e)
+    }
+  }
+
+  def getPreHeaders: Action[AnyContent] = Action { implicit request: Request[AnyContent] =>
+    try {
+      if (!Conf.functioning || !Conf.functioningAdmin) throw new Exception("Assembler is not functioning currently")
+      val headers = nodeService.getPreHeaders
+      Ok(headers).as("application/json")
     } catch {
       case e: Exception => errorResponse(e)
     }
@@ -302,6 +313,99 @@ class Controller @Inject()(cc: ControllerComponents, actorSystem: ActorSystem,
         s"""{
            |  "height": $height
            |}""".stripMargin).as("application/json")
+    } catch {
+      case e: Exception => errorResponse(e)
+    }
+  }
+
+  def broadcast: Action[Json] = Action(circe.json) { implicit request =>
+    try {
+      if (!Conf.functioning || !Conf.functioningAdmin) throw new Exception("Assembler is not functioning currently")
+      val tx = request.body.noSpaces
+      println(tx)
+      Ok(
+        s"""{
+           |  "txId": ${nodeService.broadcastRes(tx)}
+           |}""".stripMargin).as("application/json")
+    } catch {
+      case e: Exception => errorResponse(e)
+    }
+  }
+
+  def getFunds(address: String, assetId: String, amount: Long): Action[AnyContent] = Action { implicit request: Request[AnyContent] =>
+    try {
+      if (!Conf.functioning || !Conf.functioningAdmin) throw new Exception("Assembler is not functioning currently")
+      val offset = 0
+      val limit = 100
+      var needed = amount
+      var chosen = Seq.empty[Json]
+
+      val tree = nodeService.addressToTree(address)
+      val unconfirmedTxs = nodeService.getUnconfirmedTxFor(tree)
+      val unconfirmedInputs = unconfirmedTxs.flatMap(tx => tx.hcursor.downField("inputs").as[IndexedSeq[Json]].getOrElse(IndexedSeq.empty[Json]))
+      val unconfirmedOutputs = unconfirmedTxs.flatMap(tx => tx.hcursor.downField("outputs").as[IndexedSeq[Json]].getOrElse(IndexedSeq.empty[Json]))
+        .filter(output => output.hcursor.downField("ergoTree").as[String].getOrElse("") == tree)
+
+      var boxes = nodeService.unspentAssetsFor(address, offset, limit)
+
+      unconfirmedOutputs.foreach(output => {
+        val boxId = output.hcursor.downField("boxId").as[String].getOrElse("")
+        val ind = boxes.indexWhere(box => box.hcursor.downField("boxId").as[String].getOrElse("") == boxId)
+        if (ind == -1) boxes = boxes :+ output
+      })
+
+
+      if (assetId == "ERG") boxes = boxes.sortBy(box => {
+        val boxId = box.hcursor.downField("boxId").as[String].getOrElse("")
+        val ind2 = unconfirmedInputs.indexWhere(input => input.hcursor.downField("boxId").as[String].getOrElse("") == boxId)
+        val ind3 = unconfirmedOutputs.indexWhere(output => output.hcursor.downField("boxId").as[String].getOrElse("") == boxId)
+
+        if (ind2 != -1) -2L
+        else if (ind3 != -1) -1L
+        box.hcursor.downField("value").as[Long].getOrElse(0L)
+      }).reverse
+      else boxes = boxes.sortBy(box => {
+        val assets = box.hcursor.downField("assets").as[IndexedSeq[Json]].getOrElse(IndexedSeq.empty[Json])
+        val ind = assets.indexWhere(asset => asset.hcursor.downField("tokenId").as[String].getOrElse("") == assetId)
+
+        // if box in unconfirmed inputs, then return -1
+        val boxId = box.hcursor.downField("boxId").as[String].getOrElse("")
+        val ind2 = unconfirmedInputs.indexWhere(input => input.hcursor.downField("boxId").as[String].getOrElse("") == boxId)
+        val ind3 = unconfirmedOutputs.indexWhere(output => output.hcursor.downField("boxId").as[String].getOrElse("") == boxId)
+
+
+        if (ind2 != -1) -2L
+        else if (ind3 != -1) -1L
+        else if (ind == -1) 0L
+        else {
+          val asset = assets(ind)
+          asset.hcursor.downField("amount").as[Long].getOrElse(0L)
+        }
+      }).reverse
+
+
+      boxes.foreach(box => {
+        if (needed > 0) {
+          chosen = chosen :+ box
+
+          if (assetId == "ERG") needed -= box.hcursor.downField("value").as[Long].getOrElse(0L)
+          else {
+            val assets = box.hcursor.downField("assets").as[IndexedSeq[Json]].getOrElse(IndexedSeq.empty[Json])
+            val ind = assets.indexWhere(asset => asset.hcursor.downField("tokenId").as[String].getOrElse("") == assetId)
+            if (ind == -1) needed -= 0L
+            else {
+              val asset = assets(ind)
+              needed -= asset.hcursor.downField("amount").as[Long].getOrElse(0L)
+            }
+          }
+        }
+      })
+      // return chosen
+      val boxesJson: String = chosen.map { case box =>
+        box.toString()
+      }.mkString("[", ",", "]")
+      Ok(
+        s"""${boxesJson}""".stripMargin).as("application/json")
     } catch {
       case e: Exception => errorResponse(e)
     }

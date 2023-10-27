@@ -5,6 +5,8 @@ GET        /result/:id                   controllers.Controller.result(id: Strin
 + nocsrf
 GET        /return/:mine/:address        controllers.Controller.returnTx(mine: String, address: String)
 + nocsrf
+GET        /getFunds/:address/:assetId/:amount        controllers.Controller.getFunds(address: String, assetId: String, amount: Long)
++ nocsrf
 GET        /stop/:apiKey                 controllers.Controller.stop(apiKey: String)
 + nocsrf
 GET        /start/:apiKey                controllers.Controller.start(apiKey: String)
@@ -28,9 +30,15 @@ GET        /wallet                      controllers.Controller.walletAddress
 GET        /getScanAddress/:address            controllers.Controller.getScanAddress(address: String)
 
 + nocsrf
+GET        /getPreHeaders            controllers.Controller.getPreHeaders
+
++ nocsrf
 GET        /getBankBox            controllers.Controller.getBankBox()
 + nocsrf
 GET        /getOracleBox            controllers.Controller.getOracleBox()
 
 + nocsrf
 GET        /getHeight            controllers.Controller.getHeight()
+
++ nocsrf
+POST        /broadcast                     controllers.Controller.broadcast

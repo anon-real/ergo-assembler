@@ -47,6 +47,13 @@ class NodeService @Inject()() {
       .getOrElse(throw new Exception(bodyJs.hcursor.downField("detail").as[String].getOrElse("")))
   }
 
+  def addressToTree(address: String): String = {
+    val res = Http(s"${Conf.activeNodeUrl}/script/addressToTree/$address").headers(defaultHeader).asString
+    val bodyJs = parse(res.body).getOrElse(Json.Null)
+    bodyJs.hcursor.downField("tree").as[String]
+      .getOrElse(throw new Exception(bodyJs.hcursor.downField("detail").as[String].getOrElse("")))
+  }
+
   def getScanAddress(address: String): String = {
     val bs = Base16.decode(addressToRaw(address)).get
     val bac = ByteArrayConstant(bs)
@@ -106,6 +113,18 @@ class NodeService @Inject()() {
   }
 
   /**
+   * broadcasts tx
+   *
+   * @param tx transaction
+   * @return whether it was successful or not
+   */
+  def broadcastRes(tx: String): Json = {
+    val res = Http(s"${Conf.activeNodeUrl}/transactions").postData(tx).headers(defaultHeader).asString
+    if (!res.isSuccess) throw new Exception(res.body)
+    parse(res.body).getOrElse(Json.Null)
+  }
+
+  /**
    * gets list of unspent boxes for a particular scanId, confirmed + unconfirmed
    *
    * @param scanId scan id
@@ -113,6 +132,15 @@ class NodeService @Inject()() {
    */
   def unspentBoxesFor(scanId: Int, minConf: Int = -1): List[Json] = {
     val res = Http(s"${Conf.activeNodeUrl}/scan/unspentBoxes/$scanId?minConfirmations=${minConf}").headers(defaultHeader).asString
+    val bodyJs = parse(res.body).getOrElse(Json.Null)
+    bodyJs.as[List[Json]]
+      .getOrElse(throw new Exception(bodyJs.hcursor.downField("detail").as[String].getOrElse("")))
+
+  }
+
+  def unspentAssetsFor(address: String, offset: Int = 0, limit: Int = 50): List[Json] = {
+    val res = Http(s"${Conf.activeNodeUrl}/blockchain/box/unspent/byAddress/${address}?offset=${offset}&limit=${limit}")
+    .postData(address).headers(defaultHeader).asString
     val bodyJs = parse(res.body).getOrElse(Json.Null)
     bodyJs.as[List[Json]]
       .getOrElse(throw new Exception(bodyJs.hcursor.downField("detail").as[String].getOrElse("")))
@@ -208,7 +236,6 @@ class NodeService @Inject()() {
          |  "inputsRaw": [${ids.map(id => s""""${getRaw(id)}"""").mkString(",")}]
          |}""".stripMargin
 
-    println(request)
     generateTx(request)
   }
 
@@ -273,7 +300,6 @@ class NodeService @Inject()() {
       .map(id => getUnspentBox(id))
     val tx = sendBoxesTo(boxes, mine)
     val ok = tx.hcursor.keys.getOrElse(Seq()).exists(key => key == "id")
-    println(tx.noSpaces)
     if (ok) {
       broadcastTx(tx.noSpaces)
       tx.hcursor.downField("id").as[String].getOrElse("")
@@ -306,5 +332,41 @@ class NodeService @Inject()() {
     val bodyJs = parse(res.body).getOrElse(Json.Null)
     bodyJs.as[Seq[String]]
       .getOrElse(Seq("none")).head
+  }
+
+  def getPreHeaders: Json = {
+    val res = Http(s"${Conf.activeNodeUrl}/blocks/lastHeaders/10").headers(defaultHeader).asString
+    parse(res.body).getOrElse(Json.Null)
+  }
+
+  def getUnconfirmedTxFor(tree: String): Seq[Json] = {
+    val res = Http(s"${Conf.activeNodeUrl}/transactions/unconfirmed/byErgoTree").postData(
+      s""""${tree}"""".stripMargin).headers(defaultHeader).asString
+    parse(res.body).getOrElse(Json.Null).as[Seq[Json]].getOrElse(Seq())
+  }
+
+  def chainedBank(): Json = {
+    val res = unspentBoxesFor(Conf.bankScanId, 0).head.hcursor.downField("box").as[Json].getOrElse(Json.Null)
+    val bankTree = res.hcursor.downField("ergoTree").as[String].getOrElse("")
+
+    val unconfirmedTxs = Http(s"${Conf.activeNodeUrl}/transactions/unconfirmed/byErgoTree").postData(
+      s""""${bankTree}"""".stripMargin).headers(defaultHeader).asString
+    var unconfirmedList = parse(unconfirmedTxs.body).getOrElse(Json.Null).as[List[Json]].getOrElse(List())
+    // keep only valid txs
+    unconfirmedList = unconfirmedList.filter(tx => {
+      isTxValid(tx.noSpaces)
+    })
+    var curBank = res
+    while(true) {
+      val bankId = curBank.hcursor.downField("boxId").as[String].getOrElse("")
+      val contains = unconfirmedList.filter(tx => {
+        val firstOut = tx.hcursor.downField("inputs").as[List[Json]].getOrElse(List()).head
+        val firstId = firstOut.hcursor.downField("boxId").as[String].getOrElse("")
+        firstId == bankId
+      })
+      if (contains.isEmpty || contains.size > 1) return curBank
+      curBank = contains.head.hcursor.downField("outputs").as[List[Json]].getOrElse(List()).head
+    }
+    return curBank
   }
 }

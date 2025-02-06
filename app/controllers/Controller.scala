@@ -211,15 +211,13 @@ class Controller @Inject()(cc: ControllerComponents, actorSystem: ActorSystem,
   def returnAddrTestnet(address: String): Action[AnyContent] = returnAddr(address, "testnet")
 
   def returnAddr(address: String, network: String="mainnet"): Action[AnyContent] = Action { implicit request: Request[AnyContent] =>
+    var networkType = NetworkType.MAINNET
+    if (network == "testnet") networkType = NetworkType.TESTNET
     try {
       var ret: String = null
-      if (network == "testnet") {
-        val conf = RestApiErgoClient.create(Conf.activeNodeUrl + "/", NetworkType.TESTNET, "", null)
-      } else {
-        val conf = RestApiErgoClient.create(Conf.activeNodeUrl + "/", NetworkType.MAINNET, "", null)
-      }
+      var conf = RestApiErgoClient.create(Conf.activeNodeUrl + "/", networkType, "", null)
       conf.execute(ctx => {
-        val addrEnc = new ErgoAddressEncoder(NetworkType.MAINNET.networkPrefix)
+        val addrEnc = new ErgoAddressEncoder(networkType.networkPrefix)
         val cur = Address.create(address).getErgoAddress.script
         val prover = ctx.newProverBuilder()
           .withDLogSecret(BigInt.apply(0).bigInteger)

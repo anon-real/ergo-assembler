@@ -304,7 +304,7 @@ class Controller @Inject()(cc: ControllerComponents, actorSystem: ActorSystem,
   def getOracleBox: Action[AnyContent] = Action { implicit request: Request[AnyContent] =>
     try {
       if (!Conf.functioning || !Conf.functioningAdmin) throw new Exception("Assembler is not functioning currently")
-      val oracle = nodeService.unspentBoxesFor(Conf.oracleScanId, 0).head.hcursor.downField("box").as[Json].getOrElse(Json.Null)
+      val oracle = nodeService.unspentBoxesFor(Conf.oracleScanId, 0).last.hcursor.downField("box").as[Json].getOrElse(Json.Null)
       Ok(oracle).as("application/json")
     } catch {
       case e: Exception => errorResponse(e)

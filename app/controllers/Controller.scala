@@ -208,10 +208,16 @@ class Controller @Inject()(cc: ControllerComponents, actorSystem: ActorSystem,
     }
   }
 
-  def returnAddr(address: String): Action[AnyContent] = Action { implicit request: Request[AnyContent] =>
+  def returnAddrTestnet(address: String): Action[AnyContent] = returnAddr(address, "testnet")
+
+  def returnAddr(address: String, network: String="mainnet"): Action[AnyContent] = Action { implicit request: Request[AnyContent] =>
     try {
       var ret: String = null
-      val conf = RestApiErgoClient.create(Conf.activeNodeUrl + "/", NetworkType.MAINNET, "", null)
+      if (network == "testnet") {
+        val conf = RestApiErgoClient.create(Conf.activeNodeUrl + "/", NetworkType.TESTNET, "", null)
+      } else {
+        val conf = RestApiErgoClient.create(Conf.activeNodeUrl + "/", NetworkType.MAINNET, "", null)
+      }
       conf.execute(ctx => {
         val addrEnc = new ErgoAddressEncoder(NetworkType.MAINNET.networkPrefix)
         val cur = Address.create(address).getErgoAddress.script

@@ -21,6 +21,8 @@ GET        /encodedBox/:bytes            controllers.Controller.encodedBox(bytes
 + nocsrf
 GET        /returnAddr/:tree             controllers.Controller.returnAddr(tree: String)
 + nocsrf
+GET        /returnAddrTestnet/:tree             controllers.Controller.returnAddrTestnet(tree: String)
++ nocsrf
 POST        /compile                     controllers.Controller.compile
 + nocsrf
 GET        /assets/*file                 controllers.Assets.versioned(path="/public", file: Asset)
